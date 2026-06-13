@@ -22,7 +22,14 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    cities: City;
+    countries: Country;
+    days: Day;
+    genders: Gender;
+    roles: Role;
+    permissions: Permission;
     'payload-kv': PayloadKv;
+    'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -31,7 +38,14 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    cities: CitiesSelect<false> | CitiesSelect<true>;
+    countries: CountriesSelect<false> | CountriesSelect<true>;
+    days: DaysSelect<false> | DaysSelect<true>;
+    genders: GendersSelect<false> | GendersSelect<true>;
+    roles: RolesSelect<false> | RolesSelect<true>;
+    permissions: PermissionsSelect<false> | PermissionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -40,8 +54,14 @@ export interface Config {
     defaultIDType: string;
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | 'tr' | 'tr'[];
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    logo: Logo;
+    cookiePolicy: CookiePolicy;
+  };
+  globalsSelect: {
+    logo: LogoSelect<false> | LogoSelect<true>;
+    cookiePolicy: CookiePolicySelect<false> | CookiePolicySelect<true>;
+  };
   locale: 'tr';
   widgets: {
     'banner-widget': BannerWidgetWidget;
@@ -49,7 +69,13 @@ export interface Config {
   };
   user: User;
   jobs: {
-    tasks: unknown;
+    tasks: {
+      schedulePublish: TaskSchedulePublish;
+      inline: {
+        input: unknown;
+        output: unknown;
+      };
+    };
     workflows: unknown;
   };
 }
@@ -77,8 +103,77 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
+  password?: string | null;
+  /**
+   * Kullanıcının rollerini seçin.
+   */
+  roles: string | Role;
+  /**
+   * Kullanıcının ilk adını girin.
+   */
+  firstName: string;
+  /**
+   * Kullanıcının soyadını girin.
+   */
+  lastName: string;
+  /**
+   * Kullanıcının doğum tarihini girin.
+   */
+  birthDate?: string | null;
+  /**
+   * Kullanıcının cinsiyetini seçin.
+   */
+  gender: string | Gender;
+  /**
+   * Kullanıcının ülkesini seçin.
+   */
+  country?: (string | null) | Country;
+  /**
+   * Kullanıcının şehrini seçin.
+   */
+  city?: (string | null) | City;
+  /**
+   * Kullanıcının ilçesini girin.
+   */
+  district?: string | null;
+  /**
+   * Kullanıcının tam adresini girin.
+   */
+  address?: string | null;
+  /**
+   * Kullanıcının sabit telefon numarasını girin.
+   */
+  landline?: string | null;
+  /**
+   * Kullanıcının cep telefon numarasını girin.
+   */
+  gsm?: string | null;
+  images?: {
+    /**
+     * 16x9 görseli (1920x1080)
+     */
+    ratio16x9?: (string | null) | Media;
+    /**
+     * 9x16 görseli (1080x1920)
+     */
+    ratio9x16?: (string | null) | Media;
+    /**
+     * 1x1 görseli (1080x1080)
+     */
+    ratio1x1?: (string | null) | Media;
+  };
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
   email: string;
   resetPasswordToken?: string | null;
   resetPasswordExpiration?: string | null;
@@ -93,8 +188,135 @@ export interface User {
         expiresAt: string;
       }[]
     | null;
-  password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "roles".
+ */
+export interface Role {
+  id: string;
+  /**
+   * Sayfa başlığı (Rol adı)
+   */
+  title: string;
+  /**
+   * Sayfa açıklaması (Rol açıklaması)
+   */
+  description: string;
+  /**
+   * Bu role atanacak izinler
+   */
+  permissions: ('create' | 'read' | 'update' | 'delete')[];
+  /**
+   * Sayfa URL'sinde kullanılacak benzersiz tanımlayıcı
+   */
+  slug: string;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "genders".
+ */
+export interface Gender {
+  id: string;
+  /**
+   * Sayfa başlığı (Cinsiyet adı)
+   */
+  title: string;
+  /**
+   * Sayfa açıklaması (Cinsiyet açıklaması)
+   */
+  description: string;
+  /**
+   * Sayfa URL'sinde kullanılacak benzersiz tanımlayıcı
+   */
+  slug: string;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "countries".
+ */
+export interface Country {
+  id: string;
+  /**
+   * Sayfa başlığı (Ülke adı)
+   */
+  title: string;
+  /**
+   * Sayfa açıklaması (Ülke açıklaması)
+   */
+  description: string;
+  /**
+   * Sayfa URL'sinde kullanılacak benzersiz tanımlayıcı
+   */
+  slug: string;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cities".
+ */
+export interface City {
+  id: string;
+  /**
+   * Sayfa başlığı (Şehir adı)
+   */
+  title: string;
+  /**
+   * Sayfa açıklaması (Şehir açıklaması)
+   */
+  description: string;
+  /**
+   * Sayfa URL'sinde kullanılacak benzersiz tanımlayıcı
+   */
+  slug: string;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -117,6 +339,132 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "days".
+ */
+export interface Day {
+  id: string;
+  /**
+   * Sayfa başlığı (Gün adı)
+   */
+  title: string;
+  /**
+   * Sayfa açıklaması (Gün açıklaması)
+   */
+  description: string;
+  /**
+   * Sayfa URL'sinde kullanılacak benzersiz tanımlayıcı
+   */
+  slug: string;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Kullanıcı yetkilerini yönetin - Her kullanıcı için tek kayıt
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "permissions".
+ */
+export interface Permission {
+  id: string;
+  /**
+   * Yetkilerin atanacağı kullanıcı
+   */
+  user: string | User;
+  /**
+   * Tüm yetkileri geçici olarak devre dışı bırakabilirsiniz
+   */
+  isActive?: boolean | null;
+  users: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  media: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  cities: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  countries: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  days: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  genders: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  roles: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  logo: {
+    /**
+     * Kullanıcının yapabileceği işlemler
+     */
+    actions: ('none' | 'read' | 'update' | 'readVersions')[];
+  };
+  cookiePolicy: {
+    /**
+     * Kullanıcının yapabileceği işlemler
+     */
+    actions: ('none' | 'read' | 'update' | 'readVersions')[];
+  };
+  forms: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  formSubmissions: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  redirects: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  searches: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  imports: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  exports: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  /**
+   * Kullanıcının dashboard'da görebileceği widget'lar. Seçilmezse hiçbir widget görünmez. Admin kullanıcılar her zaman tüm widget'ları görür.
+   */
+  widgets?: ('banner-widget' | 'stats-widget' | 'recent-activity-widget')[] | null;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -134,6 +482,98 @@ export interface PayloadKv {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs".
+ */
+export interface PayloadJob {
+  id: string;
+  /**
+   * Input data provided to the job
+   */
+  input?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  taskStatus?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  completedAt?: string | null;
+  totalTried?: number | null;
+  /**
+   * If hasError is true this job will not be retried
+   */
+  hasError?: boolean | null;
+  /**
+   * If hasError is true, this is the error that caused it
+   */
+  error?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Task execution log
+   */
+  log?:
+    | {
+        executedAt: string;
+        completedAt: string;
+        taskSlug: 'inline' | 'schedulePublish';
+        taskID: string;
+        input?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        output?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        state: 'failed' | 'succeeded';
+        error?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  taskSlug?: ('inline' | 'schedulePublish') | null;
+  queue?: string | null;
+  waitUntil?: string | null;
+  processing?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -146,6 +586,30 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'cities';
+        value: string | City;
+      } | null)
+    | ({
+        relationTo: 'countries';
+        value: string | Country;
+      } | null)
+    | ({
+        relationTo: 'days';
+        value: string | Day;
+      } | null)
+    | ({
+        relationTo: 'genders';
+        value: string | Gender;
+      } | null)
+    | ({
+        relationTo: 'roles';
+        value: string | Role;
+      } | null)
+    | ({
+        relationTo: 'permissions';
+        value: string | Permission;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -194,8 +658,31 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  password?: T;
+  roles?: T;
+  firstName?: T;
+  lastName?: T;
+  birthDate?: T;
+  gender?: T;
+  country?: T;
+  city?: T;
+  district?: T;
+  address?: T;
+  landline?: T;
+  gsm?: T;
+  images?:
+    | T
+    | {
+        ratio16x9?: T;
+        ratio9x16?: T;
+        ratio1x1?: T;
+      };
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
+  deletedAt?: T;
+  _status?: T;
   email?: T;
   resetPasswordToken?: T;
   resetPasswordExpiration?: T;
@@ -231,11 +718,219 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cities_select".
+ */
+export interface CitiesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  slug?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "countries_select".
+ */
+export interface CountriesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  slug?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "days_select".
+ */
+export interface DaysSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  slug?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "genders_select".
+ */
+export interface GendersSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  slug?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "roles_select".
+ */
+export interface RolesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  permissions?: T;
+  slug?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "permissions_select".
+ */
+export interface PermissionsSelect<T extends boolean = true> {
+  user?: T;
+  isActive?: T;
+  users?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  media?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  cities?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  countries?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  days?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  genders?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  roles?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  logo?:
+    | T
+    | {
+        actions?: T;
+      };
+  cookiePolicy?:
+    | T
+    | {
+        actions?: T;
+      };
+  forms?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  formSubmissions?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  redirects?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  searches?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  imports?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  exports?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  widgets?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
   key?: T;
   data?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs_select".
+ */
+export interface PayloadJobsSelect<T extends boolean = true> {
+  input?: T;
+  taskStatus?: T;
+  completedAt?: T;
+  totalTried?: T;
+  hasError?: T;
+  error?: T;
+  log?:
+    | T
+    | {
+        executedAt?: T;
+        completedAt?: T;
+        taskSlug?: T;
+        taskID?: T;
+        input?: T;
+        output?: T;
+        state?: T;
+        error?: T;
+        id?: T;
+      };
+  taskSlug?: T;
+  queue?: T;
+  waitUntil?: T;
+  processing?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -271,6 +966,136 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "logo".
+ */
+export interface Logo {
+  id: string;
+  /**
+   * Site genelinde kullanılacak ana logo (SVG önerilir)
+   */
+  logo?: (string | null) | Media;
+  /**
+   * Logo açıklaması (alt text)
+   */
+  logoAlt: string;
+  /**
+   * Site faviconı (.ico dosyası, 32x32 veya 16x16)
+   */
+  favicon?: (string | null) | Media;
+  /**
+   * Modern tarayıcılar için SVG favicon
+   */
+  faviconSvg?: (string | null) | Media;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cookiePolicy".
+ */
+export interface CookiePolicy {
+  id: string;
+  /**
+   * Çerez politikasının aktif olup olmadığını belirler
+   */
+  enabled?: boolean | null;
+  /**
+   * Çerez politikası metni
+   */
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  acceptButton?: {
+    show?: boolean | null;
+    /**
+     * Çerez politikasını kabul et butonunda gösterilecek metin
+     */
+    text?: string | null;
+  };
+  rejectButton?: {
+    show?: boolean | null;
+    /**
+     * Çerez politikasını reddet butonunda gösterilecek metin
+     */
+    text?: string | null;
+  };
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "logo_select".
+ */
+export interface LogoSelect<T extends boolean = true> {
+  logo?: T;
+  logoAlt?: T;
+  favicon?: T;
+  faviconSvg?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cookiePolicy_select".
+ */
+export interface CookiePolicySelect<T extends boolean = true> {
+  enabled?: T;
+  content?: T;
+  acceptButton?:
+    | T
+    | {
+        show?: T;
+        text?: T;
+      };
+  rejectButton?:
+    | T
+    | {
+        show?: T;
+        text?: T;
+      };
+  createdBy?: T;
+  updatedBy?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "banner-widget_widget".
  */
 export interface BannerWidgetWidget {
@@ -288,6 +1113,44 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSchedulePublish".
+ */
+export interface TaskSchedulePublish {
+  input: {
+    type?: ('publish' | 'unpublish') | null;
+    locale?: string | null;
+    doc?:
+      | ({
+          relationTo: 'users';
+          value: string | User;
+        } | null)
+      | ({
+          relationTo: 'cities';
+          value: string | City;
+        } | null)
+      | ({
+          relationTo: 'countries';
+          value: string | Country;
+        } | null)
+      | ({
+          relationTo: 'days';
+          value: string | Day;
+        } | null)
+      | ({
+          relationTo: 'genders';
+          value: string | Gender;
+        } | null)
+      | ({
+          relationTo: 'roles';
+          value: string | Role;
+        } | null);
+    global?: ('logo' | 'cookiePolicy') | null;
+    user?: (string | null) | User;
+  };
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

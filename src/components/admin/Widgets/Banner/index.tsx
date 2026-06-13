@@ -1,7 +1,13 @@
 import type { WidgetServerProps } from 'payload'
 import Image from 'next/image'
+import { canViewWidget } from '@/access'
 
 export default async function BannerWidget({ req }: WidgetServerProps) {
+
+    const hasPermission = await canViewWidget('banner-widget', req)
+    if (!hasPermission) return null
+
+    const user = req.user
 
     // Format date in Turkish
     const today = new Intl.DateTimeFormat('tr-TR', {
@@ -21,17 +27,17 @@ export default async function BannerWidget({ req }: WidgetServerProps) {
                     {today}
                 </div>
                 <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">
-                    Hoş Geldiniz! 👋
+                    Hoş Geldiniz{user && 'email' in user && user.email ? `, ${user.email.split('@')[0]}` : ''}! 👋
                 </h2>
                 <p className="text-zinc-500 max-w-lg">
-                    Gleam'e hoş geldiniz! Dashboard'unuzu keşfedin, yeni özellikleri deneyimleyin ve bize geri bildirimde bulunun. Harika bir deneyim için buradayız!
+                    Arwenis'e hoş geldiniz! Dashboard'unuzu keşfedin, yeni özellikleri deneyimleyin ve bize geri bildirimde bulunun. Harika bir deneyim için buradayız!
                 </p>
             </div>
 
             <div className="relative z-10 shrink-0 p-4">
                 <Image
                     src="/assets/images/symbol/symbol-black.svg"
-                    alt="Gleam Logo"
+                    alt="Arwenis Logo"
                     width={180}
                     height={60}
                     className="h-12 w-auto object-contain md:h-16"
