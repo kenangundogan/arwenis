@@ -44,6 +44,7 @@ export interface Config {
   globalsSelect: {};
   locale: 'tr';
   widgets: {
+    'banner-widget': BannerWidgetWidget;
     collections: CollectionsWidget;
   };
   user: User;
@@ -267,6 +268,16 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "banner-widget_widget".
+ */
+export interface BannerWidgetWidget {
+  data?: {
+    [k: string]: unknown;
+  };
+  width: 'full';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

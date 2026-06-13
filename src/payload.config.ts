@@ -46,6 +46,18 @@ export default buildConfig({
             ],
             defaultTimezone: 'UTC',
         },
+        components: {
+        },
+        dashboard: {
+            widgets: [
+                {
+                    slug: 'banner-widget',
+                    Component: './components/Admin/Widgets/Banner/index.tsx#default',
+                    minWidth: 'full',
+                    maxWidth: 'full',
+                },
+            ],
+        },
     },
     localization: {
         locales: ['tr'],
