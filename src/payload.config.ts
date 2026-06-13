@@ -4,22 +4,21 @@ import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
+import { collections } from './collections'
+import { globals } from './globals'
 import { tr } from '@payloadcms/translations/languages/tr'
-
-import { Users } from './collections/Users'
-import { Media } from './collections/Media'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 export default buildConfig({
     admin: {
-        user: Users.slug,
+        user: 'users',
         importMap: {
             baseDir: path.resolve(dirname),
         },
         meta: {
-            titleSuffix: '- Gleam',
+            titleSuffix: '- Arwenis',
             icons: [
                 {
                     rel: 'icon',
@@ -52,7 +51,7 @@ export default buildConfig({
             widgets: [
                 {
                     slug: 'banner-widget',
-                    Component: './components/Admin/Widgets/Banner/index.tsx#default',
+                    Component: './components/admin/Widgets/Banner/index.tsx#default',
                     minWidth: 'full',
                     maxWidth: 'full',
                 },
@@ -69,7 +68,8 @@ export default buildConfig({
         fallbackLanguage: 'tr',
         translations: {},
     },
-    collections: [Users, Media],
+    collections,
+    globals,
     editor: lexicalEditor(),
     secret: process.env.PAYLOAD_SECRET || '',
     typescript: {
