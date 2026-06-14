@@ -7,6 +7,8 @@ const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
+  // Required by the Dockerfile (copies .next/standalone + runs server.js).
+  output: 'standalone',
   images: {
     localPatterns: [
       {

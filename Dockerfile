@@ -1,4 +1,4 @@
-# To use this Dockerfile, you have to set `output: 'standalone'` in your next.config.mjs file.
+# This image relies on `output: 'standalone'` being set in next.config.ts (already configured).
 # From https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
 
 FROM node:22.17.0-alpine AS base
