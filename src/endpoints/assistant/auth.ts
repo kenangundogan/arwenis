@@ -22,6 +22,7 @@ const findByEmail = async (req: PayloadRequest, email: string) => {
         limit: 1,
         depth: 0,
         overrideAccess: true,
+        showHiddenFields: true,
     })
     return res.docs[0] as any | undefined
 }

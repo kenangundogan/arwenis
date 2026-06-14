@@ -16,6 +16,7 @@ export const Conversations: CollectionConfig = {
         delete: canDelete('conversations'),
     },
     admin: {
+        description: 'Üyelerin asistan sohbetleri. Salt okunur — sunucu tarafında oluşturulur; mesaj/token sayacı ve özet içerir.',
         group: 'Asistan',
         useAsTitle: 'title',
         defaultColumns: ['title', 'member', 'messageCount', 'tokensTotal', 'updatedAt'],

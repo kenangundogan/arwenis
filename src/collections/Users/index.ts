@@ -54,6 +54,7 @@ export const Users: CollectionConfig = {
         delete: canDelete('users'),
     },
     admin: {
+        description: 'Yönetim paneli (admin) kullanıcıları. Asistan üyelerinden (Members) tamamen ayrıdır.',
         group: 'Kullanıcı Yönetimi',
         listSearchableFields: ['email', 'general.firstName', 'general.lastName', 'roles', 'updatedAt'],
         defaultColumns: ['email', 'general.firstName', 'general.lastName', 'roles', 'updatedAt'],

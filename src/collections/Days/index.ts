@@ -39,6 +39,7 @@ export const Days: CollectionConfig<'days'> = {
     },
     defaultSort: 'dayIndex',
     admin: {
+        description: 'Haftanın günleri / gün tanımları (sıralı referans verisi).',
         defaultColumns: ['dayIndex', 'title', 'slug', 'updatedAt'],
         group: 'Tanımlar',
         useAsTitle: 'title',

@@ -41,6 +41,7 @@ export const Countries: CollectionConfig<'countries'> = {
         dialCode: true,
     },
     admin: {
+        description: 'Ülke tanımları (ISO kodu, telefon kodu). Şehirlerin bağlı olduğu referans verisi.',
         defaultColumns: ['title', 'iso2', 'dialCode', 'slug', 'updatedAt'],
         group: 'Coğrafya Yönetimi',
         useAsTitle: 'title',

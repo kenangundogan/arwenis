@@ -15,6 +15,7 @@ export const Memory: CollectionConfig = {
         delete: canDelete('memory'),
     },
     admin: {
+        description: 'Üye hakkında konuşmalar arası hatırlanan kalıcı bilgiler (Katman 4). Salt okunur — sunucu tarafında çıkarılır.',
         group: 'Asistan',
         useAsTitle: 'text',
         defaultColumns: ['text', 'member', 'createdAt'],

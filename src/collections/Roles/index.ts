@@ -39,6 +39,7 @@ export const Roles: CollectionConfig<'roles'> = {
         permissions: true,
     },
     admin: {
+        description: 'Sistem rolleri (admin = süper yetkili). Kullanıcılara atanır; ince yetkiler İzinler koleksiyonunda.',
         defaultColumns: ['title', 'slug', 'permissions', 'updatedAt'],
         group: 'Kullanıcı Yönetimi',
         useAsTitle: 'title',

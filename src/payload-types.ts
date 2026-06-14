@@ -32,6 +32,7 @@ export interface Config {
     messages: Message;
     memory: Memory;
     folders: Folder;
+    usage: Usage;
     permissions: Permission;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
@@ -53,6 +54,7 @@ export interface Config {
     messages: MessagesSelect<false> | MessagesSelect<true>;
     memory: MemorySelect<false> | MemorySelect<true>;
     folders: FoldersSelect<false> | FoldersSelect<true>;
+    usage: UsageSelect<false> | UsageSelect<true>;
     permissions: PermissionsSelect<false> | PermissionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
@@ -124,6 +126,8 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Yönetim paneli (admin) kullanıcıları. Asistan üyelerinden (Members) tamamen ayrıdır.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -217,6 +221,8 @@ export interface User {
   collection: 'users';
 }
 /**
+ * Sistem rolleri (admin = süper yetkili). Kullanıcılara atanır; ince yetkiler İzinler koleksiyonunda.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "roles".
  */
@@ -252,6 +258,8 @@ export interface Role {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Cinsiyet tanımları. Üye/kullanıcı profillerinde kullanılan referans verisi.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "genders".
  */
@@ -283,6 +291,8 @@ export interface Gender {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Ülke tanımları (ISO kodu, telefon kodu). Şehirlerin bağlı olduğu referans verisi.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "countries".
  */
@@ -322,6 +332,8 @@ export interface Country {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Şehir/il tanımları. Ülkeye bağlı referans verisi.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "cities".
  */
@@ -361,6 +373,8 @@ export interface City {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Yüklenen görsel ve dosyalar. Okuma herkese açık; yazma yetkiye bağlı.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
@@ -383,6 +397,8 @@ export interface Media {
   focalY?: number | null;
 }
 /**
+ * Haftanın günleri / gün tanımları (sıralı referans verisi).
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "days".
  */
@@ -418,6 +434,8 @@ export interface Day {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Asistan son kullanıcıları (üyeler). Admin kullanıcılarından tamamen ayrı; kendi giriş sistemiyle oluşturulur.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "members".
  */
@@ -439,6 +457,8 @@ export interface Member {
   deletedAt?: string | null;
 }
 /**
+ * Üyelerin asistan sohbetleri. Salt okunur — sunucu tarafında oluşturulur; mesaj/token sayacı ve özet içerir.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "conversations".
  */
@@ -460,6 +480,8 @@ export interface Conversation {
   deletedAt?: string | null;
 }
 /**
+ * Üyelerin sohbetlerini grupladığı klasörler. Salt okunur — üye tarafında oluşturulur.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "folders".
  */
@@ -471,6 +493,8 @@ export interface Folder {
   createdAt: string;
 }
 /**
+ * Sohbetlerdeki tekil mesajlar (kullanıcı/asistan). Salt okunur — sunucu tarafında yazılır; kaynak atıfları ve token bilgisi içerir.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "messages".
  */
@@ -498,6 +522,8 @@ export interface Message {
   createdAt: string;
 }
 /**
+ * Üye hakkında konuşmalar arası hatırlanan kalıcı bilgiler (Katman 4). Salt okunur — sunucu tarafında çıkarılır.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "memory".
  */
@@ -508,6 +534,20 @@ export interface Memory {
    * Kullanıcı hakkında kalıcı gerçek (örn. tercih, durum)
    */
   text: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Günlük asistan kullanım sayacı (mesaj + token). Salt okunur — sunucu tarafında yazılır.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "usage".
+ */
+export interface Usage {
+  id: string;
+  day: string;
+  messageCount?: number | null;
+  tokenCount?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -572,6 +612,10 @@ export interface Permission {
     actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
   };
   folders: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  usage: {
     scope: 'none' | 'own' | 'all';
     actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
   };
@@ -813,6 +857,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'folders';
         value: string | Folder;
+      } | null)
+    | ({
+        relationTo: 'usage';
+        value: string | Usage;
       } | null)
     | ({
         relationTo: 'permissions';
@@ -1075,6 +1123,17 @@ export interface FoldersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "usage_select".
+ */
+export interface UsageSelect<T extends boolean = true> {
+  day?: T;
+  messageCount?: T;
+  tokenCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "permissions_select".
  */
 export interface PermissionsSelect<T extends boolean = true> {
@@ -1147,6 +1206,12 @@ export interface PermissionsSelect<T extends boolean = true> {
         actions?: T;
       };
   folders?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  usage?:
     | T
     | {
         scope?: T;
@@ -1543,7 +1608,7 @@ export interface Llm {
    */
   apiKey?: string | null;
   /**
-   * Yalnız OpenAI-uyumlu (self-hosted/Azure/Ollama) için gerekir. Örn. http://localhost:11434/v1. Diğer sağlayıcılarda otomatik.
+   * Yalnız OpenAI-uyumlu (self-hosted/Azure/Ollama) için gerekir. Örn. http://localhost:11434/v1. Diğer sağlayıcılarda sabit (panelden değiştirilemez — güvenlik).
    */
   baseUrl?: string | null;
   /**

@@ -2,7 +2,7 @@ import type { GlobalConfig } from 'payload'
 
 import { auditFields } from '@/fields/auditFields'
 import { canReadGlobal, canUpdateGlobal, canReadVersionsGlobal, adminOnlyField } from '@/access'
-import { embeddingOptions } from '@/lib/assistant/providers'
+import { embeddingOptions, getEmbeddingProvider } from '@/lib/assistant/providers'
 
 const secretAccess = { read: adminOnlyField, update: adminOnlyField }
 
@@ -30,7 +30,7 @@ export const Embedding: GlobalConfig = {
             label: 'Base URL',
             type: 'text',
             admin: {
-                condition: (_, siblingData) => siblingData?.provider === 'openai-compatible',
+                condition: (_, siblingData) => getEmbeddingProvider(siblingData?.provider)?.editableBaseUrl ?? false,
                 placeholder: 'http://localhost:11434/v1',
                 description: 'OpenAI-uyumlu embedding adresi (örn. Ollama). Örn. http://localhost:11434/v1',
             },

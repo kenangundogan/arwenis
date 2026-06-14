@@ -40,6 +40,7 @@ export const Cities: CollectionConfig<'cities'> = {
         plateCode: true,
     },
     admin: {
+        description: 'Şehir/il tanımları. Ülkeye bağlı referans verisi.',
         defaultColumns: ['title', 'country', 'plateCode', 'slug', 'updatedAt'],
         group: 'Coğrafya Yönetimi',
         useAsTitle: 'title',
