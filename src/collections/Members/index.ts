@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { APIError } from 'payload'
 
 import { canReadSecure, canDelete } from '@/access'
 import { preventHardDelete } from '@/access/collection/preventHardDelete'
@@ -8,6 +9,12 @@ export const Members: CollectionConfig = {
     labels: {
         singular: 'Üye',
         plural: 'Üyeler',
+    },
+    auth: {
+        tokenExpiration: 60 * 60 * 24 * 30,
+        maxLoginAttempts: 5,
+        lockTime: 10 * 60 * 1000,
+        cookies: { sameSite: 'Lax' },
     },
     access: {
         create: () => false,
@@ -43,14 +50,6 @@ export const Members: CollectionConfig = {
             required: true,
             unique: true,
             index: true,
-        },
-        {
-            name: 'passwordHash',
-            label: 'Şifre (hash)',
-            type: 'text',
-            hidden: true,
-
-            access: { read: () => false },
         },
         {
             name: 'externalId',
@@ -90,6 +89,13 @@ export const Members: CollectionConfig = {
         },
     ],
     hooks: {
+        beforeLogin: [
+            ({ user }) => {
+                if ((user as { status?: string })?.status === 'blocked') {
+                    throw new APIError('Erişiminiz engellenmiştir.', 403)
+                }
+            },
+        ],
         beforeDelete: [preventHardDelete],
     },
 }

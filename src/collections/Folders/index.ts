@@ -1,6 +1,13 @@
 import type { CollectionConfig } from 'payload'
 
-import { canReadSecure, canDelete } from '@/access'
+import { isMember } from '@/access/utils'
+import {
+    memberOwnedRead,
+    memberOwnedUpdate,
+    memberOwnedDelete,
+    memberCreate,
+    notMemberField,
+} from '@/access/collection/memberOwned'
 
 export const Folders: CollectionConfig = {
     slug: 'folders',
@@ -9,10 +16,10 @@ export const Folders: CollectionConfig = {
         plural: 'Klasörler',
     },
     access: {
-        create: () => false,
-        read: canReadSecure('folders'),
-        update: () => false,
-        delete: canDelete('folders'),
+        create: memberCreate,
+        read: memberOwnedRead('folders'),
+        update: memberOwnedUpdate,
+        delete: memberOwnedDelete('folders'),
     },
     admin: {
         description: 'Üyelerin sohbetlerini grupladığı klasörler. Salt okunur — üye tarafında oluşturulur.',
@@ -28,6 +35,7 @@ export const Folders: CollectionConfig = {
             relationTo: 'members',
             index: true,
             required: true,
+            access: { update: notMemberField },
         },
         {
             name: 'name',
@@ -36,4 +44,14 @@ export const Folders: CollectionConfig = {
             required: true,
         },
     ],
+    hooks: {
+        beforeValidate: [
+            ({ data, req, operation }) => {
+                if (operation === 'create' && data && isMember(req.user)) {
+                    data.member = req.user!.id
+                }
+                return data
+            },
+        ],
+    },
 }

@@ -8,6 +8,9 @@ class VectorError extends Error {
     }
 }
 
+const VECTOR_TIMEOUT_MS = 20_000
+const GQL_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/
+
 export type VectorQuery = {
         vector?: number[]
         text?: string
@@ -55,6 +58,7 @@ const queryQdrant = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Cita
             limit: cfg.topK,
             with_payload: true,
         }),
+        signal: AbortSignal.timeout(VECTOR_TIMEOUT_MS),
     })
     if (!res.ok) throw new VectorError(`Qdrant hatası (${res.status}): ${(await res.text()).slice(0, 300)}`)
     const json: any = await res.json()
@@ -77,6 +81,7 @@ const queryPinecone = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Ci
             includeMetadata: true,
             ...(cfg.namespace ? { namespace: cfg.namespace } : {}),
         }),
+        signal: AbortSignal.timeout(VECTOR_TIMEOUT_MS),
     })
     if (!res.ok) throw new VectorError(`Pinecone hatası (${res.status}): ${(await res.text()).slice(0, 300)}`)
     const json: any = await res.json()
@@ -94,6 +99,10 @@ const queryWeaviate = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Ci
             : null
     if (!near) throw new VectorError('Weaviate için vektör veya metin sorgusu gerekli.')
 
+    if (!GQL_IDENTIFIER.test(cfg.index) || !GQL_IDENTIFIER.test(cfg.textKey)) {
+        throw new VectorError('Geçersiz Weaviate index/textKey adı.')
+    }
+
     const gql = `{ Get { ${cfg.index}( ${near} limit: ${cfg.topK} ) { ${cfg.textKey} _additional { id certainty distance } } } }`
 
     const res = await fetch(`${cfg.url}/v1/graphql`, {
@@ -103,6 +112,7 @@ const queryWeaviate = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Ci
             ...(cfg.apiKey ? { Authorization: `Bearer ${cfg.apiKey}` } : {}),
         },
         body: JSON.stringify({ query: gql }),
+        signal: AbortSignal.timeout(VECTOR_TIMEOUT_MS),
     })
     if (!res.ok) throw new VectorError(`Weaviate hatası (${res.status}): ${(await res.text()).slice(0, 300)}`)
     const json: any = await res.json()
@@ -123,6 +133,7 @@ export const pingVector = async (cfg: ResolvedRetrieval): Promise<PingResult> =>
             case 'qdrant': {
                 const res = await fetch(`${cfg.url}/collections/${encodeURIComponent(cfg.index)}`, {
                     headers: cfg.apiKey ? { 'api-key': cfg.apiKey } : {},
+                    signal: AbortSignal.timeout(VECTOR_TIMEOUT_MS),
                 })
                 if (!res.ok) return { ok: false, message: `Qdrant (${res.status}): ${(await res.text()).slice(0, 200)}` }
                 const json: any = await res.json()
@@ -144,6 +155,7 @@ export const pingVector = async (cfg: ResolvedRetrieval): Promise<PingResult> =>
                         ...(cfg.apiKey ? { 'Api-Key': cfg.apiKey } : {}),
                     },
                     body: '{}',
+                    signal: AbortSignal.timeout(VECTOR_TIMEOUT_MS),
                 })
                 if (!res.ok) return { ok: false, message: `Pinecone (${res.status}): ${(await res.text()).slice(0, 200)}` }
                 const json: any = await res.json()
@@ -152,6 +164,7 @@ export const pingVector = async (cfg: ResolvedRetrieval): Promise<PingResult> =>
             case 'weaviate': {
                 const res = await fetch(`${cfg.url}/v1/meta`, {
                     headers: cfg.apiKey ? { Authorization: `Bearer ${cfg.apiKey}` } : {},
+                    signal: AbortSignal.timeout(VECTOR_TIMEOUT_MS),
                 })
                 if (!res.ok) return { ok: false, message: `Weaviate (${res.status}): ${(await res.text()).slice(0, 200)}` }
                 return { ok: true }

@@ -42,7 +42,7 @@ export const MemorySettings: GlobalConfig = {
             type: 'number',
             defaultValue: 90,
             min: 0,
-            admin: { description: 'Eski konuşma/hafıza kaç gün sonra silinsin. Örn. 90. 0 = sınırsız. (Otomatik temizleme ileride eklenecek.)' },
+            admin: { description: 'Bilgi amaçlı saklama süresi (gün). Örn. 90. 0 = sınırsız. Eski veri temizliği şimdilik admin panelinden manuel yapılır.' },
         },
         ...auditFields,
     ],

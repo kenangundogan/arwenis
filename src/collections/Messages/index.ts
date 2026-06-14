@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
-import { canReadSecure, canDelete } from '@/access'
+import { canDelete } from '@/access'
+import { memberOwnedRead } from '@/access/collection/memberOwned'
 
 export const Messages: CollectionConfig = {
     slug: 'messages',
@@ -10,7 +11,7 @@ export const Messages: CollectionConfig = {
     },
     access: {
         create: () => false,
-        read: canReadSecure('messages'),
+        read: memberOwnedRead('messages'),
         update: () => false,
         delete: canDelete('messages'),
     },
@@ -28,6 +29,14 @@ export const Messages: CollectionConfig = {
             relationTo: 'conversations',
             index: true,
             required: true,
+        },
+        {
+            name: 'member',
+            label: 'Üye',
+            type: 'relationship',
+            relationTo: 'members',
+            index: true,
+            admin: { readOnly: true, position: 'sidebar' },
         },
         {
             name: 'role',
@@ -49,7 +58,7 @@ export const Messages: CollectionConfig = {
             name: 'citations',
             label: 'Kaynaklar',
             type: 'json',
-            admin: { description: 'Kullanılan kaynaklar [{n,title,url,score}] (§4.2)' },
+            admin: { description: 'Kullanılan kaynaklar [{n,title,url,score}]' },
         },
         {
             type: 'row',

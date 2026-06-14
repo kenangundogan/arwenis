@@ -21,7 +21,7 @@ export const Integrations: GlobalConfig = {
             name: 'google',
             type: 'group',
             label: 'Google ile Giriş (OAuth)',
-            admin: { description: 'Yönlendirme URI: <site>/api/assistant/auth/google/callback' },
+            admin: { description: 'Yönlendirme URI: <site>/api/assistant/auth/google/callback (yakında).' },
             fields: [
                 {
                     name: 'enabled',
@@ -89,7 +89,7 @@ export const Integrations: GlobalConfig = {
             name: 'recaptcha',
             type: 'group',
             label: 'reCAPTCHA v3',
-            admin: { description: 'Bot koruması (giriş/kayıt). Site Key publictir; Secret Key gizli.' },
+            admin: { description: 'Bot koruması (giriş/kayıt). Site Key publictir; Secret Key gizli. (yakında)' },
             fields: [
                 {
                     name: 'enabled',

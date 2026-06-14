@@ -1,14 +1,8 @@
-import type { User } from '@/payload-types'
+import type { AuthUser } from './utils'
 
-export const checkRole = (allRoles: string[] = [], user?: User | null): boolean => {
-    if (user) {
-        if (
-            allRoles.some((role) => {
-                return user?.roles && typeof user.roles === 'object' && user.roles.slug === role
-            })
-        )
-            return true
-    }
-
-    return false
+export const checkRole = (allRoles: string[] = [], user?: AuthUser | null): boolean => {
+    if (!user || !('roles' in user)) return false
+    return allRoles.some(
+        (role) => user.roles && typeof user.roles === 'object' && 'slug' in user.roles && user.roles.slug === role,
+    )
 }

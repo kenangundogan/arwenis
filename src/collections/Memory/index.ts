@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { canReadSecure, canDelete } from '@/access'
+import { memberOwnedRead, memberOwnedDelete } from '@/access/collection/memberOwned'
 
 export const Memory: CollectionConfig = {
     slug: 'memory',
@@ -10,9 +10,9 @@ export const Memory: CollectionConfig = {
     },
     access: {
         create: () => false,
-        read: canReadSecure('memory'),
+        read: memberOwnedRead('memory'),
         update: () => false,
-        delete: canDelete('memory'),
+        delete: memberOwnedDelete('memory'),
     },
     admin: {
         description: 'Üye hakkında konuşmalar arası hatırlanan kalıcı bilgiler (Katman 4). Salt okunur — sunucu tarafında çıkarılır.',

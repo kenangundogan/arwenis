@@ -17,6 +17,7 @@ export type SupportedTimezones = 'UTC' | 'Europe/Istanbul';
 export interface Config {
   auth: {
     users: UserAuthOperations;
+    members: MemberAuthOperations;
   };
   blocks: {};
   collections: {
@@ -95,7 +96,7 @@ export interface Config {
     'banner-widget': BannerWidgetWidget;
     collections: CollectionsWidget;
   };
-  user: User;
+  user: User | Member;
   jobs: {
     tasks: {
       schedulePublish: TaskSchedulePublish;
@@ -108,6 +109,24 @@ export interface Config {
   };
 }
 export interface UserAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
+  };
+}
+export interface MemberAuthOperations {
   forgotPassword: {
     email: string;
     password: string;
@@ -237,7 +256,7 @@ export interface Role {
    */
   description: string;
   /**
-   * Bu role atanacak izinler
+   * Bilgilendirme amaçlı etiket. Gerçek yetkilendirme "Permissions" koleksiyonundaki kullanıcı kayıtları üzerinden uygulanır.
    */
   permissions: ('create' | 'read' | 'update' | 'delete')[];
   /**
@@ -442,8 +461,6 @@ export interface Day {
 export interface Member {
   id: string;
   authProvider: 'email' | 'oauth';
-  email: string;
-  passwordHash?: string | null;
   /**
    * OAuth sağlayıcı kimliği (sub)
    */
@@ -455,6 +472,22 @@ export interface Member {
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'members';
 }
 /**
  * Üyelerin asistan sohbetleri. Salt okunur — sunucu tarafında oluşturulur; mesaj/token sayacı ve özet içerir.
@@ -468,7 +501,7 @@ export interface Conversation {
   folder?: (string | null) | Folder;
   title?: string | null;
   /**
-   * Konuşma özeti — her tur sonunda güncellenir (Faz 5)
+   * Konuşma özeti — her tur sonunda güncellenir.
    */
   summary?: string | null;
   status?: ('active' | 'archived') | null;
@@ -501,10 +534,11 @@ export interface Folder {
 export interface Message {
   id: string;
   conversation: string | Conversation;
+  member?: (string | null) | Member;
   role: 'user' | 'assistant';
   content: string;
   /**
-   * Kullanılan kaynaklar [{n,title,url,score}] (§4.2)
+   * Kullanılan kaynaklar [{n,title,url,score}]
    */
   citations?:
     | {
@@ -867,10 +901,15 @@ export interface PayloadLockedDocument {
         value: string | Permission;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'users';
-    value: string | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: string | User;
+      }
+    | {
+        relationTo: 'members';
+        value: string | Member;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -880,10 +919,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: string;
-  user: {
-    relationTo: 'users';
-    value: string | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: string | User;
+      }
+    | {
+        relationTo: 'members';
+        value: string | Member;
+      };
   key?: string | null;
   value?:
     | {
@@ -1058,8 +1102,6 @@ export interface RolesSelect<T extends boolean = true> {
  */
 export interface MembersSelect<T extends boolean = true> {
   authProvider?: T;
-  email?: T;
-  passwordHash?: T;
   externalId?: T;
   displayName?: T;
   status?: T;
@@ -1068,6 +1110,20 @@ export interface MembersSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1092,6 +1148,7 @@ export interface ConversationsSelect<T extends boolean = true> {
  */
 export interface MessagesSelect<T extends boolean = true> {
   conversation?: T;
+  member?: T;
   role?: T;
   content?: T;
   citations?: T;
@@ -1393,7 +1450,7 @@ export interface Theme {
 export interface Integration {
   id: string;
   /**
-   * Yönlendirme URI: <site>/api/assistant/auth/google/callback
+   * Yönlendirme URI: <site>/api/assistant/auth/google/callback (yakında).
    */
   google?: {
     /**
@@ -1429,7 +1486,7 @@ export interface Integration {
     privateKey?: string | null;
   };
   /**
-   * Bot koruması (giriş/kayıt). Site Key publictir; Secret Key gizli.
+   * Bot koruması (giriş/kayıt). Site Key publictir; Secret Key gizli. (yakında)
    */
   recaptcha?: {
     enabled?: boolean | null;
@@ -1738,7 +1795,7 @@ export interface MemorySetting {
    */
   crossConversation?: boolean | null;
   /**
-   * Eski konuşma/hafıza kaç gün sonra silinsin. Örn. 90. 0 = sınırsız. (Otomatik temizleme ileride eklenecek.)
+   * Bilgi amaçlı saklama süresi (gün). Örn. 90. 0 = sınırsız. Eski veri temizliği şimdilik admin panelinden manuel yapılır.
    */
   retentionDays?: number | null;
   /**

@@ -9,6 +9,7 @@ import { contextualizeQuery, retrieve } from '@/lib/assistant/retrieve'
 import { buildContext } from '@/lib/assistant/buildContext'
 import { extractUsedCitations, type UsedCitation } from '@/lib/assistant/guardrails'
 import { resolveMember } from '@/lib/assistant/auth/resolveMember'
+import { assertSameOrigin } from '@/lib/assistant/auth/csrf'
 import {
     getOrCreateConversation,
     loadHistory,
@@ -20,11 +21,12 @@ import {
     countConversations,
 } from '@/lib/assistant/store'
 import { summarizeAndExtract } from '@/lib/assistant/summarize'
-import { checkDailyCap, incrementUsage } from '@/lib/assistant/usage'
+import { checkDailyCap, incrementUsage, estimateTokens } from '@/lib/assistant/usage'
 import { checkRateLimit, getClientIp } from '@/lib/assistant/rateLimit'
 
 const MESSAGE_CHAR_CAP = 4000
 const HISTORY_CHAR_CAP = 8000
+const MEMBER_HOURLY_CAP = 100
 
 const sanitizeHistory = (raw: unknown, windowSize: number): ChatMessage[] => {
     if (!Array.isArray(raw)) return []
@@ -45,6 +47,7 @@ export const chatEndpoint: Endpoint = {
     path: '/assistant/chat',
     method: 'post',
     handler: async (req) => {
+        assertSameOrigin(req)
         let body: { message?: string; conversationId?: string; history?: unknown }
         try {
             body = (await req.json?.()) ?? {}
@@ -64,6 +67,10 @@ export const chatEndpoint: Endpoint = {
         const rateLimit = settings.limits?.perIpRateLimit ?? 0
         if (rateLimit > 0 && !checkRateLimit(`chat:${getClientIp(req.headers)}`, rateLimit, 60_000)) {
             throw new APIError('Çok fazla istek gönderildi. Lütfen biraz bekleyin.', 429)
+        }
+
+        if (!checkRateLimit(`chat:member:${memberId}`, MEMBER_HOURLY_CAP, 60 * 60 * 1000)) {
+            throw new APIError('Saatlik mesaj sınırına ulaştınız. Lütfen biraz sonra tekrar deneyin.', 429)
         }
 
         if (!(await checkDailyCap(req.payload, settings.limits?.dailyMessageCap))) {
@@ -131,7 +138,8 @@ export const chatEndpoint: Endpoint = {
             } catch (err) {
                 req.payload.logger.error({ err }, '[assistant] persist failed')
             }
-            await incrementUsage(req.payload, (usage?.inputTokens ?? 0) + (usage?.outputTokens ?? 0))
+            const total = (usage?.inputTokens ?? 0) + (usage?.outputTokens ?? 0)
+            await incrementUsage(req.payload, total > 0 ? total : estimateTokens(message) + estimateTokens(full))
         }
 
         const runMemory = async () => {
@@ -158,8 +166,9 @@ export const chatEndpoint: Endpoint = {
                 if (crossConv && newFacts.length && member) {
                     await saveMemories(req.payload, String(member.id), newFacts)
                 }
-            } catch {
-                            }
+            } catch (err) {
+                req.payload.logger.error({ err }, '[assistant] memory update failed')
+            }
         }
 
         const stream = new ReadableStream<Uint8Array>({

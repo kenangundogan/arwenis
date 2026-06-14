@@ -20,7 +20,6 @@ jobs:
     env:
       # CI'a ozel placeholder degerler - gercek secret degildir.
       PAYLOAD_SECRET: ci-dummy-payload-secret-0123456789abcdef
-      MEMBER_SESSION_SECRET: ci-dummy-member-session-secret-0123456789abcdef
       CRON_SECRET: ci-dummy-cron-secret-0123456789abcdef
       PREVIEW_SECRET: ci-dummy-preview-secret-0123456789abcdef
       DATABASE_URL: mongodb://127.0.0.1:27017/arwenis_ci

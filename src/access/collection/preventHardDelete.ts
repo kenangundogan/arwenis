@@ -1,9 +1,9 @@
 import type { CollectionBeforeDeleteHook } from 'payload'
-import { hasPermission } from '@/access/utils'
+import { hasPermission, isAdmin } from '@/access/utils'
 import { APIError } from 'payload'
 
 export const preventHardDelete: CollectionBeforeDeleteHook = async ({ req, collection }) => {
-    if (req.user && typeof req.user.roles === 'object' && req.user.roles?.slug === 'admin') {
+    if (isAdmin(req.user)) {
         return
     }
 

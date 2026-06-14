@@ -1,5 +1,5 @@
 import type { LLMStreamParams, StreamEvent } from '../types'
-import { parseSSE, safeErrorText } from './sse'
+import { parseSSE, safeErrorText, withTimeout } from './sse'
 import { splitSystem, normalizeTurns } from './normalize'
 
 export async function* geminiStream(p: LLMStreamParams): AsyncGenerator<StreamEvent> {
@@ -24,7 +24,7 @@ export async function* geminiStream(p: LLMStreamParams): AsyncGenerator<StreamEv
                     temperature: p.temperature,
                 },
             }),
-            signal: p.signal,
+            signal: withTimeout(p.signal),
         })
     } catch (err) {
         yield { type: 'error', message: `LLM bağlantı hatası: ${(err as Error).message}` }

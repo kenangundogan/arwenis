@@ -68,7 +68,7 @@ export const resolveRetrieval = (settings: AssistantConfig): ResolvedRetrieval =
 
     return {
         providerId: provider.id,
-        url: r.url.replace(/\/$/, ''),
+        url: assertSafeBaseUrl(r.url),
         apiKey: r.apiKey ?? undefined,
         index: r.index,
         namespace: r.namespace ?? undefined,

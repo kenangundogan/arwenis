@@ -1,6 +1,14 @@
 import type { Payload } from 'payload'
+import type { Model } from 'mongoose'
 
 export const todayKey = (): string => new Date().toISOString().slice(0, 10)
+
+export const estimateTokens = (text: string): number => Math.ceil((text?.length ?? 0) / 4)
+
+const usageModel = (payload: Payload): Model<Record<string, unknown>> | null => {
+    const db = payload.db as unknown as { collections?: Record<string, Model<Record<string, unknown>>> }
+    return db.collections?.usage ?? null
+}
 
 const findToday = async (payload: Payload, day: string) => {
     const { docs } = await payload.find({
@@ -22,6 +30,15 @@ export const checkDailyCap = async (payload: Payload, cap: number | null | undef
 export const incrementUsage = async (payload: Payload, tokens: number): Promise<void> => {
     const day = todayKey()
     try {
+        const model = usageModel(payload)
+        if (model) {
+            await model.findOneAndUpdate(
+                { day },
+                { $inc: { messageCount: 1, tokenCount: tokens } },
+                { upsert: true },
+            )
+            return
+        }
         const doc = await findToday(payload, day)
         if (doc) {
             await payload.update({
