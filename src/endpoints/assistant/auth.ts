@@ -4,8 +4,17 @@ import { APIError } from 'payload'
 import { resolveMember } from '@/lib/assistant/auth/resolveMember'
 import { signSession, sessionCookie, clearSessionCookie } from '@/lib/assistant/auth/session'
 import { hashPassword, verifyPassword } from '@/lib/assistant/auth/password'
+import { checkRateLimit, getClientIp } from '@/lib/assistant/rateLimit'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const LOGIN_MAX = 20
+const LOGIN_WINDOW_MS = 15 * 60 * 1000
+const REGISTER_MAX = 10
+const REGISTER_WINDOW_MS = 60 * 60 * 1000
+
+const tooManyRequests = () =>
+    new APIError('Çok fazla deneme yaptınız. Lütfen bir süre sonra tekrar deneyin.', 429)
 
 const safeUser = (u: any) => ({
     id: u.id,
@@ -31,6 +40,9 @@ const register: Endpoint = {
     path: '/assistant/auth/register',
     method: 'post',
     handler: async (req) => {
+        if (!checkRateLimit(`register:${getClientIp(req.headers)}`, REGISTER_MAX, REGISTER_WINDOW_MS)) {
+            throw tooManyRequests()
+        }
         const body = (await req.json?.()) ?? {}
         const email = (body.email ?? '').toString().trim().toLowerCase()
         const password = (body.password ?? '').toString()
@@ -61,6 +73,9 @@ const login: Endpoint = {
     path: '/assistant/auth/login',
     method: 'post',
     handler: async (req) => {
+        if (!checkRateLimit(`login:${getClientIp(req.headers)}`, LOGIN_MAX, LOGIN_WINDOW_MS)) {
+            throw tooManyRequests()
+        }
         const body = (await req.json?.()) ?? {}
         const email = (body.email ?? '').toString().trim().toLowerCase()
         const password = (body.password ?? '').toString()
