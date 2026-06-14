@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'crypto'
 
-const SECRET = process.env.PAYLOAD_SECRET || ''
+// Member sessions use a dedicated secret, isolated from PAYLOAD_SECRET (admin auth).
+const SECRET = process.env.MEMBER_SESSION_SECRET || ''
 const TTL_SECONDS = 60 * 60 * 24 * 30
 export const SESSION_COOKIE = 'arwenis_session'
 
