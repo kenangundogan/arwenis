@@ -15,7 +15,9 @@ import {
     required,
     generalText,
     minLength,
-    maxLength
+    maxLength,
+    matches,
+    isoCountryCodeValidator,
 } from '@/utilities/validators'
 
 export const Countries: CollectionConfig<'countries'> = {
@@ -35,10 +37,11 @@ export const Countries: CollectionConfig<'countries'> = {
     defaultPopulate: {
         title: true,
         slug: true,
-        description: true
+        iso2: true,
+        dialCode: true,
     },
     admin: {
-        defaultColumns: ['title', 'slug', 'updatedAt'],
+        defaultColumns: ['title', 'iso2', 'dialCode', 'slug', 'updatedAt'],
         group: 'Coğrafya Yönetimi',
         useAsTitle: 'title',
     },
@@ -48,6 +51,7 @@ export const Countries: CollectionConfig<'countries'> = {
             name: 'title',
             type: 'text',
             required: true,
+            localized: true,
             validate: composeValidators(
                 required(),
                 generalText(),
@@ -55,22 +59,55 @@ export const Countries: CollectionConfig<'countries'> = {
                 maxLength(50)
             ),
             admin: {
-                description: 'Sayfa başlığı (Ülke adı)',
+                description: 'Ülke adı (dile göre — örn. Türkiye / Turkey)',
             },
+        },
+        {
+            type: 'row',
+            fields: [
+                {
+                    label: 'ISO Kodu (alpha-2)',
+                    name: 'iso2',
+                    type: 'text',
+                    required: true,
+                    unique: true,
+                    index: true,
+                    validate: composeValidators(
+                        required(),
+                        isoCountryCodeValidator(),
+                    ),
+                    admin: {
+                        width: '50%',
+                        placeholder: 'Örn. TR',
+                        description: '2 harfli ISO 3166-1 ülke kodu (büyük harf)',
+                    },
+                },
+                {
+                    label: 'Telefon Kodu',
+                    name: 'dialCode',
+                    type: 'text',
+                    validate: composeValidators(
+                        matches(/^\+\d{1,4}$/, 'Geçerli bir telefon kodu giriniz (örn. +90).'),
+                    ),
+                    admin: {
+                        width: '50%',
+                        placeholder: 'Örn. +90',
+                        description: 'Uluslararası arama kodu (opsiyonel)',
+                    },
+                },
+            ],
         },
         {
             label: 'Açıklama',
             name: 'description',
             type: 'text',
-            required: true,
+            localized: true,
             validate: composeValidators(
-                required(),
                 generalText(),
-                minLength(2),
                 maxLength(160)
             ),
             admin: {
-                description: 'Sayfa açıklaması (Ülke açıklaması)',
+                description: 'Opsiyonel açıklama',
             },
         },
         {
@@ -95,14 +132,13 @@ export const Countries: CollectionConfig<'countries'> = {
                 source: [{ field: 'title' }],
                 target: 'slug',
                 transform: 'slugify',
+                onlyOnCreate: true,
             }),
         ],
     },
     versions: {
         drafts: {
-            // autosave: {
-            //   interval: 100,
-            // },
+
             schedulePublish: true,
         },
         maxPerDoc: 50,

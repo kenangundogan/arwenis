@@ -35,11 +35,12 @@ export const Days: CollectionConfig<'days'> = {
     defaultPopulate: {
         title: true,
         slug: true,
-        description: true
+        dayIndex: true,
     },
+    defaultSort: 'dayIndex',
     admin: {
-        defaultColumns: ['title', 'slug', 'updatedAt'],
-        group: 'Coğrafya Yönetimi',
+        defaultColumns: ['dayIndex', 'title', 'slug', 'updatedAt'],
+        group: 'Tanımlar',
         useAsTitle: 'title',
     },
     fields: [
@@ -48,6 +49,7 @@ export const Days: CollectionConfig<'days'> = {
             name: 'title',
             type: 'text',
             required: true,
+            localized: true,
             validate: composeValidators(
                 required(),
                 generalText(),
@@ -55,22 +57,35 @@ export const Days: CollectionConfig<'days'> = {
                 maxLength(50)
             ),
             admin: {
-                description: 'Sayfa başlığı (Gün adı)',
+                description: 'Gün adı (dile göre — örn. Pazartesi / Monday)',
+            },
+        },
+        {
+            label: 'Gün Sırası',
+            name: 'dayIndex',
+            type: 'number',
+            required: true,
+            unique: true,
+            index: true,
+            min: 0,
+            max: 6,
+            admin: {
+                step: 1,
+                placeholder: 'Örn. 0',
+                description: 'Haftanın günü sırası: 0 = Pazartesi … 6 = Pazar (dil-bağımsız sıralama)',
             },
         },
         {
             label: 'Açıklama',
             name: 'description',
             type: 'text',
-            required: true,
+            localized: true,
             validate: composeValidators(
-                required(),
                 generalText(),
-                minLength(2),
                 maxLength(160)
             ),
             admin: {
-                description: 'Sayfa açıklaması (Gün açıklaması)',
+                description: 'Opsiyonel açıklama',
             },
         },
         {
@@ -95,14 +110,13 @@ export const Days: CollectionConfig<'days'> = {
                 source: [{ field: 'title' }],
                 target: 'slug',
                 transform: 'slugify',
+                onlyOnCreate: true,
             }),
         ],
     },
     versions: {
         drafts: {
-            // autosave: {
-            //   interval: 100,
-            // },
+
             schedulePublish: true,
         },
         maxPerDoc: 50,

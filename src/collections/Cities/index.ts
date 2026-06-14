@@ -15,7 +15,8 @@ import {
     required,
     generalText,
     minLength,
-    maxLength
+    maxLength,
+    matches,
 } from '@/utilities/validators'
 
 export const Cities: CollectionConfig<'cities'> = {
@@ -35,10 +36,11 @@ export const Cities: CollectionConfig<'cities'> = {
     defaultPopulate: {
         title: true,
         slug: true,
-        description: true
+        country: true,
+        plateCode: true,
     },
     admin: {
-        defaultColumns: ['title', 'slug', 'updatedAt'],
+        defaultColumns: ['title', 'country', 'plateCode', 'slug', 'updatedAt'],
         group: 'Coğrafya Yönetimi',
         useAsTitle: 'title',
     },
@@ -48,6 +50,7 @@ export const Cities: CollectionConfig<'cities'> = {
             name: 'title',
             type: 'text',
             required: true,
+            localized: true,
             validate: composeValidators(
                 required(),
                 generalText(),
@@ -55,22 +58,50 @@ export const Cities: CollectionConfig<'cities'> = {
                 maxLength(50)
             ),
             admin: {
-                description: 'Sayfa başlığı (Şehir adı)',
+                description: 'Şehir adı (dile göre — örn. İstanbul / Istanbul)',
             },
+        },
+        {
+            type: 'row',
+            fields: [
+                {
+                    label: 'Ülke',
+                    name: 'country',
+                    type: 'relationship',
+                    relationTo: 'countries',
+                    required: true,
+                    index: true,
+                    admin: {
+                        width: '50%',
+                        description: 'Şehrin bağlı olduğu ülke',
+                    },
+                },
+                {
+                    label: 'Plaka Kodu',
+                    name: 'plateCode',
+                    type: 'text',
+                    validate: composeValidators(
+                        matches(/^\d{1,2}$/, 'Geçerli bir plaka kodu giriniz (örn. 34).'),
+                    ),
+                    admin: {
+                        width: '50%',
+                        placeholder: 'Örn. 34',
+                        description: 'İl plaka kodu (opsiyonel — TR için)',
+                    },
+                },
+            ],
         },
         {
             label: 'Açıklama',
             name: 'description',
             type: 'text',
-            required: true,
+            localized: true,
             validate: composeValidators(
-                required(),
                 generalText(),
-                minLength(2),
                 maxLength(160)
             ),
             admin: {
-                description: 'Sayfa açıklaması (Şehir açıklaması)',
+                description: 'Opsiyonel açıklama',
             },
         },
         {
@@ -95,14 +126,13 @@ export const Cities: CollectionConfig<'cities'> = {
                 source: [{ field: 'title' }],
                 target: 'slug',
                 transform: 'slugify',
+                onlyOnCreate: true,
             }),
         ],
     },
     versions: {
         drafts: {
-            // autosave: {
-            //   interval: 100,
-            // },
+
             schedulePublish: true,
         },
         maxPerDoc: 50,

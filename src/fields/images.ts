@@ -21,7 +21,7 @@ export const imagesFields: Field = {
                 return validateMediaDimensionsAsync(value, req, 1920, 1080)
             },
             admin: {
-                // allowCreate: false,
+
                 description: '16x9 görseli (1920x1080)',
             },
         },
@@ -40,7 +40,7 @@ export const imagesFields: Field = {
                 return validateMediaDimensionsAsync(value, req, 1080, 1920)
             },
             admin: {
-                // allowCreate: false,
+
                 description: '9x16 görseli (1080x1920)',
             },
         },
@@ -59,7 +59,7 @@ export const imagesFields: Field = {
                 return validateMediaDimensionsAsync(value, req, 1080, 1080)
             },
             admin: {
-                // allowCreate: false,
+
                 description: '1x1 görseli (1080x1080)',
             },
         },

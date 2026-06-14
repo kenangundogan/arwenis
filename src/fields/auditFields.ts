@@ -1,14 +1,5 @@
 import type { Field } from 'payload'
 
-/**
- * Audit Fields
- *
- * İçeriğin kim tarafından oluşturulduğu ve güncellendiği bilgisini tutar.
- * Her collection'da kullanılabilir.
- *
- * GÜVENLİK: createdBy ve updatedBy sadece authenticated kullanıcılar tarafından görülebilir.
- * Public API'de bu alanlar görünmez.
- */
 export const auditFields: Field[] = [
     {
         label: 'Oluşturan',
@@ -16,7 +7,7 @@ export const auditFields: Field[] = [
         type: 'relationship',
         relationTo: 'users',
         access: {
-            // Sadece authenticated (giriş yapmış) kullanıcılar görebilir
+
             read: ({ req: { user } }) => !!user,
         },
         admin: {
@@ -27,7 +18,7 @@ export const auditFields: Field[] = [
         hooks: {
             beforeChange: [
                 async ({ req, value, operation }) => {
-                    // Sadece create işleminde, user varsa ve henüz değer atanmamışsa
+
                     if (operation === 'create' && req.user && !value) {
                         return req.user.id
                     }
@@ -42,7 +33,7 @@ export const auditFields: Field[] = [
         type: 'relationship',
         relationTo: 'users',
         access: {
-            // Sadece authenticated (giriş yapmış) kullanıcılar görebilir
+
             read: ({ req: { user } }) => !!user,
         },
         admin: {
@@ -53,7 +44,7 @@ export const auditFields: Field[] = [
         hooks: {
             beforeChange: [
                 async ({ req, operation }) => {
-                    // Her create ve update işleminde kullanıcı bilgisini kaydet
+
                     if ((operation === 'create' || operation === 'update') && req.user) {
                         return req.user.id
                     }

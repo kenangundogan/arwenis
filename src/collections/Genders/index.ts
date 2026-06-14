@@ -50,6 +50,7 @@ export const Genders: CollectionConfig<'genders'> = {
             type: 'text',
             required: true,
             unique: true,
+            localized: true,
             validate: composeValidators(
                 required(),
                 minLength(2),
@@ -57,22 +58,20 @@ export const Genders: CollectionConfig<'genders'> = {
                 onlyText(),
             ),
             admin: {
-                description: 'Sayfa başlığı (Cinsiyet adı)',
+                description: 'Cinsiyet adı (dile göre — örn. Erkek / Male)',
             },
         },
         {
             label: 'Açıklama',
             name: 'description',
             type: 'text',
-            required: true,
+            localized: true,
             validate: composeValidators(
-                required(),
-                minLength(5),
                 maxLength(160),
                 generalText()
             ),
             admin: {
-                description: 'Sayfa açıklaması (Cinsiyet açıklaması)',
+                description: 'Opsiyonel açıklama',
             },
         },
         {
@@ -97,14 +96,13 @@ export const Genders: CollectionConfig<'genders'> = {
                 source: [{ field: 'title' }],
                 target: 'slug',
                 transform: 'slugify',
+                onlyOnCreate: true,
             }),
         ],
     },
     versions: {
         drafts: {
-            // autosave: {
-            //   interval: 100,
-            // },
+
             schedulePublish: true,
         },
         maxPerDoc: 50,

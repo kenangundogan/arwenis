@@ -27,6 +27,11 @@ export interface Config {
     days: Day;
     genders: Gender;
     roles: Role;
+    members: Member;
+    conversations: Conversation;
+    messages: Message;
+    memory: Memory;
+    folders: Folder;
     permissions: Permission;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
@@ -43,6 +48,11 @@ export interface Config {
     days: DaysSelect<false> | DaysSelect<true>;
     genders: GendersSelect<false> | GendersSelect<true>;
     roles: RolesSelect<false> | RolesSelect<true>;
+    members: MembersSelect<false> | MembersSelect<true>;
+    conversations: ConversationsSelect<false> | ConversationsSelect<true>;
+    messages: MessagesSelect<false> | MessagesSelect<true>;
+    memory: MemorySelect<false> | MemorySelect<true>;
+    folders: FoldersSelect<false> | FoldersSelect<true>;
     permissions: PermissionsSelect<false> | PermissionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
@@ -55,12 +65,28 @@ export interface Config {
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | 'tr' | 'tr'[];
   globals: {
-    logo: Logo;
+    theme: Theme;
+    integrations: Integration;
     cookiePolicy: CookiePolicy;
+    persona: Persona;
+    prompts: Prompt;
+    llm: Llm;
+    embedding: Embedding;
+    retrieval: Retrieval;
+    memorySettings: MemorySetting;
+    limits: Limit;
   };
   globalsSelect: {
-    logo: LogoSelect<false> | LogoSelect<true>;
+    theme: ThemeSelect<false> | ThemeSelect<true>;
+    integrations: IntegrationsSelect<false> | IntegrationsSelect<true>;
     cookiePolicy: CookiePolicySelect<false> | CookiePolicySelect<true>;
+    persona: PersonaSelect<false> | PersonaSelect<true>;
+    prompts: PromptsSelect<false> | PromptsSelect<true>;
+    llm: LlmSelect<false> | LlmSelect<true>;
+    embedding: EmbeddingSelect<false> | EmbeddingSelect<true>;
+    retrieval: RetrievalSelect<false> | RetrievalSelect<true>;
+    memorySettings: MemorySettingsSelect<false> | MemorySettingsSelect<true>;
+    limits: LimitsSelect<false> | LimitsSelect<true>;
   };
   locale: 'tr';
   widgets: {
@@ -232,13 +258,13 @@ export interface Role {
 export interface Gender {
   id: string;
   /**
-   * Sayfa başlığı (Cinsiyet adı)
+   * Cinsiyet adı (dile göre — örn. Erkek / Male)
    */
   title: string;
   /**
-   * Sayfa açıklaması (Cinsiyet açıklaması)
+   * Opsiyonel açıklama
    */
-  description: string;
+  description?: string | null;
   /**
    * Sayfa URL'sinde kullanılacak benzersiz tanımlayıcı
    */
@@ -263,13 +289,21 @@ export interface Gender {
 export interface Country {
   id: string;
   /**
-   * Sayfa başlığı (Ülke adı)
+   * Ülke adı (dile göre — örn. Türkiye / Turkey)
    */
   title: string;
   /**
-   * Sayfa açıklaması (Ülke açıklaması)
+   * 2 harfli ISO 3166-1 ülke kodu (büyük harf)
    */
-  description: string;
+  iso2: string;
+  /**
+   * Uluslararası arama kodu (opsiyonel)
+   */
+  dialCode?: string | null;
+  /**
+   * Opsiyonel açıklama
+   */
+  description?: string | null;
   /**
    * Sayfa URL'sinde kullanılacak benzersiz tanımlayıcı
    */
@@ -294,13 +328,21 @@ export interface Country {
 export interface City {
   id: string;
   /**
-   * Sayfa başlığı (Şehir adı)
+   * Şehir adı (dile göre — örn. İstanbul / Istanbul)
    */
   title: string;
   /**
-   * Sayfa açıklaması (Şehir açıklaması)
+   * Şehrin bağlı olduğu ülke
    */
-  description: string;
+  country: string | Country;
+  /**
+   * İl plaka kodu (opsiyonel — TR için)
+   */
+  plateCode?: string | null;
+  /**
+   * Opsiyonel açıklama
+   */
+  description?: string | null;
   /**
    * Sayfa URL'sinde kullanılacak benzersiz tanımlayıcı
    */
@@ -324,6 +366,9 @@ export interface City {
  */
 export interface Media {
   id: string;
+  /**
+   * Görselin erişilebilirlik açıklaması (alt text)
+   */
   alt: string;
   updatedAt: string;
   createdAt: string;
@@ -344,13 +389,17 @@ export interface Media {
 export interface Day {
   id: string;
   /**
-   * Sayfa başlığı (Gün adı)
+   * Gün adı (dile göre — örn. Pazartesi / Monday)
    */
   title: string;
   /**
-   * Sayfa açıklaması (Gün açıklaması)
+   * Haftanın günü sırası: 0 = Pazartesi … 6 = Pazar (dil-bağımsız sıralama)
    */
-  description: string;
+  dayIndex: number;
+  /**
+   * Opsiyonel açıklama
+   */
+  description?: string | null;
   /**
    * Sayfa URL'sinde kullanılacak benzersiz tanımlayıcı
    */
@@ -367,6 +416,100 @@ export interface Day {
   createdAt: string;
   deletedAt?: string | null;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "members".
+ */
+export interface Member {
+  id: string;
+  authProvider: 'email' | 'oauth';
+  email: string;
+  passwordHash?: string | null;
+  /**
+   * OAuth sağlayıcı kimliği (sub)
+   */
+  externalId?: string | null;
+  displayName?: string | null;
+  status: 'active' | 'blocked';
+  locale?: string | null;
+  lastSeenAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "conversations".
+ */
+export interface Conversation {
+  id: string;
+  member?: (string | null) | Member;
+  folder?: (string | null) | Folder;
+  title?: string | null;
+  /**
+   * Konuşma özeti — her tur sonunda güncellenir (Faz 5)
+   */
+  summary?: string | null;
+  status?: ('active' | 'archived') | null;
+  messageCount?: number | null;
+  tokensTotal?: number | null;
+  lastMessageAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "folders".
+ */
+export interface Folder {
+  id: string;
+  member: string | Member;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "messages".
+ */
+export interface Message {
+  id: string;
+  conversation: string | Conversation;
+  role: 'user' | 'assistant';
+  content: string;
+  /**
+   * Kullanılan kaynaklar [{n,title,url,score}] (§4.2)
+   */
+  citations?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  tokensIn?: number | null;
+  tokensOut?: number | null;
+  feedback?: ('up' | 'down') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "memory".
+ */
+export interface Memory {
+  id: string;
+  member: string | Member;
+  /**
+   * Kullanıcı hakkında kalıcı gerçek (örn. tercih, durum)
+   */
+  text: string;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Kullanıcı yetkilerini yönetin - Her kullanıcı için tek kayıt
@@ -412,7 +555,33 @@ export interface Permission {
     scope: 'none' | 'own' | 'all';
     actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
   };
-  logo: {
+  members: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  conversations: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  messages: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  memory: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  folders: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  theme: {
+    /**
+     * Kullanıcının yapabileceği işlemler
+     */
+    actions: ('none' | 'read' | 'update' | 'readVersions')[];
+  };
+  integrations: {
     /**
      * Kullanıcının yapabileceği işlemler
      */
@@ -424,34 +593,52 @@ export interface Permission {
      */
     actions: ('none' | 'read' | 'update' | 'readVersions')[];
   };
-  forms: {
-    scope: 'none' | 'own' | 'all';
-    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  persona: {
+    /**
+     * Kullanıcının yapabileceği işlemler
+     */
+    actions: ('none' | 'read' | 'update' | 'readVersions')[];
   };
-  formSubmissions: {
-    scope: 'none' | 'own' | 'all';
-    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  prompts: {
+    /**
+     * Kullanıcının yapabileceği işlemler
+     */
+    actions: ('none' | 'read' | 'update' | 'readVersions')[];
   };
-  redirects: {
-    scope: 'none' | 'own' | 'all';
-    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  llm: {
+    /**
+     * Kullanıcının yapabileceği işlemler
+     */
+    actions: ('none' | 'read' | 'update' | 'readVersions')[];
   };
-  searches: {
-    scope: 'none' | 'own' | 'all';
-    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  embedding: {
+    /**
+     * Kullanıcının yapabileceği işlemler
+     */
+    actions: ('none' | 'read' | 'update' | 'readVersions')[];
   };
-  imports: {
-    scope: 'none' | 'own' | 'all';
-    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  retrieval: {
+    /**
+     * Kullanıcının yapabileceği işlemler
+     */
+    actions: ('none' | 'read' | 'update' | 'readVersions')[];
   };
-  exports: {
-    scope: 'none' | 'own' | 'all';
-    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  memorySettings: {
+    /**
+     * Kullanıcının yapabileceği işlemler
+     */
+    actions: ('none' | 'read' | 'update' | 'readVersions')[];
+  };
+  limits: {
+    /**
+     * Kullanıcının yapabileceği işlemler
+     */
+    actions: ('none' | 'read' | 'update' | 'readVersions')[];
   };
   /**
    * Kullanıcının dashboard'da görebileceği widget'lar. Seçilmezse hiçbir widget görünmez. Admin kullanıcılar her zaman tüm widget'ları görür.
    */
-  widgets?: ('banner-widget' | 'stats-widget' | 'recent-activity-widget')[] | null;
+  widgets?: 'banner-widget'[] | null;
   /**
    * Bu içeriği oluşturan kullanıcı
    */
@@ -608,6 +795,26 @@ export interface PayloadLockedDocument {
         value: string | Role;
       } | null)
     | ({
+        relationTo: 'members';
+        value: string | Member;
+      } | null)
+    | ({
+        relationTo: 'conversations';
+        value: string | Conversation;
+      } | null)
+    | ({
+        relationTo: 'messages';
+        value: string | Message;
+      } | null)
+    | ({
+        relationTo: 'memory';
+        value: string | Memory;
+      } | null)
+    | ({
+        relationTo: 'folders';
+        value: string | Folder;
+      } | null)
+    | ({
         relationTo: 'permissions';
         value: string | Permission;
       } | null);
@@ -722,6 +929,8 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface CitiesSelect<T extends boolean = true> {
   title?: T;
+  country?: T;
+  plateCode?: T;
   description?: T;
   slug?: T;
   createdBy?: T;
@@ -737,6 +946,8 @@ export interface CitiesSelect<T extends boolean = true> {
  */
 export interface CountriesSelect<T extends boolean = true> {
   title?: T;
+  iso2?: T;
+  dialCode?: T;
   description?: T;
   slug?: T;
   createdBy?: T;
@@ -752,6 +963,7 @@ export interface CountriesSelect<T extends boolean = true> {
  */
 export interface DaysSelect<T extends boolean = true> {
   title?: T;
+  dayIndex?: T;
   description?: T;
   slug?: T;
   createdBy?: T;
@@ -791,6 +1003,75 @@ export interface RolesSelect<T extends boolean = true> {
   createdAt?: T;
   deletedAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "members_select".
+ */
+export interface MembersSelect<T extends boolean = true> {
+  authProvider?: T;
+  email?: T;
+  passwordHash?: T;
+  externalId?: T;
+  displayName?: T;
+  status?: T;
+  locale?: T;
+  lastSeenAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "conversations_select".
+ */
+export interface ConversationsSelect<T extends boolean = true> {
+  member?: T;
+  folder?: T;
+  title?: T;
+  summary?: T;
+  status?: T;
+  messageCount?: T;
+  tokensTotal?: T;
+  lastMessageAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "messages_select".
+ */
+export interface MessagesSelect<T extends boolean = true> {
+  conversation?: T;
+  role?: T;
+  content?: T;
+  citations?: T;
+  tokensIn?: T;
+  tokensOut?: T;
+  feedback?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "memory_select".
+ */
+export interface MemorySelect<T extends boolean = true> {
+  member?: T;
+  text?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "folders_select".
+ */
+export interface FoldersSelect<T extends boolean = true> {
+  member?: T;
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -841,7 +1122,42 @@ export interface PermissionsSelect<T extends boolean = true> {
         scope?: T;
         actions?: T;
       };
-  logo?:
+  members?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  conversations?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  messages?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  memory?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  folders?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  theme?:
+    | T
+    | {
+        actions?: T;
+      };
+  integrations?:
     | T
     | {
         actions?: T;
@@ -851,40 +1167,39 @@ export interface PermissionsSelect<T extends boolean = true> {
     | {
         actions?: T;
       };
-  forms?:
+  persona?:
     | T
     | {
-        scope?: T;
         actions?: T;
       };
-  formSubmissions?:
+  prompts?:
     | T
     | {
-        scope?: T;
         actions?: T;
       };
-  redirects?:
+  llm?:
     | T
     | {
-        scope?: T;
         actions?: T;
       };
-  searches?:
+  embedding?:
     | T
     | {
-        scope?: T;
         actions?: T;
       };
-  imports?:
+  retrieval?:
     | T
     | {
-        scope?: T;
         actions?: T;
       };
-  exports?:
+  memorySettings?:
     | T
     | {
-        scope?: T;
+        actions?: T;
+      };
+  limits?:
+    | T
+    | {
         actions?: T;
       };
   widgets?: T;
@@ -966,10 +1281,18 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "logo".
+ * via the `definition` "theme".
  */
-export interface Logo {
+export interface Theme {
   id: string;
+  /**
+   * Markaya özel asistan adı (frontend başlık + sekmeler)
+   */
+  name: string;
+  /**
+   * Tema ana rengi (--brand CSS değişkenine yansır)
+   */
+  brandColor?: string | null;
   /**
    * Site genelinde kullanılacak ana logo (SVG önerilir)
    */
@@ -979,13 +1302,85 @@ export interface Logo {
    */
   logoAlt: string;
   /**
-   * Site faviconı (.ico dosyası, 32x32 veya 16x16)
+   * Site faviconı (.ico, 32x32 veya 16x16)
    */
   favicon?: (string | null) | Media;
   /**
    * Modern tarayıcılar için SVG favicon
    */
   faviconSvg?: (string | null) | Media;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integrations".
+ */
+export interface Integration {
+  id: string;
+  /**
+   * Yönlendirme URI: <site>/api/assistant/auth/google/callback
+   */
+  google?: {
+    /**
+     * İşaretliyse giriş ekranında "Google ile devam et" görünür (credential dolu olmalı).
+     */
+    enabled?: boolean | null;
+    /**
+     * Google Cloud Console → OAuth 2.0 Client ID
+     */
+    clientId?: string | null;
+    /**
+     * 🔒 Gizli
+     */
+    clientSecret?: string | null;
+  };
+  /**
+   * Apple ile giriş entegrasyonu (yakında).
+   */
+  apple?: {
+    /**
+     * İşaretliyse giriş ekranında "Apple ile devam et" görünür (credential dolu olmalı).
+     */
+    enabled?: boolean | null;
+    /**
+     * Apple Developer → Identifiers → Services ID
+     */
+    clientId?: string | null;
+    teamId?: string | null;
+    keyId?: string | null;
+    /**
+     * 🔒 Gizli — .p8 anahtar içeriği
+     */
+    privateKey?: string | null;
+  };
+  /**
+   * Bot koruması (giriş/kayıt). Site Key publictir; Secret Key gizli.
+   */
+  recaptcha?: {
+    enabled?: boolean | null;
+    /**
+     * Public (frontend'de kullanılır)
+     */
+    siteKey?: string | null;
+    /**
+     * 🔒 Gizli (sunucu doğrulaması)
+     */
+    secretKey?: string | null;
+    /**
+     * v3 skor eşiği (altı bot sayılır)
+     */
+    minScore?: number | null;
+  };
   /**
    * Bu içeriği oluşturan kullanıcı
    */
@@ -1054,13 +1449,326 @@ export interface CookiePolicy {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "logo_select".
+ * via the `definition` "persona".
  */
-export interface LogoSelect<T extends boolean = true> {
+export interface Persona {
+  id: string;
+  /**
+   * Sohbet ilk açıldığında gösterilen karşılama metni. Örn. "Merhaba! Size nasıl yardımcı olabilirim?"
+   */
+  welcomeMessage?: string | null;
+  /**
+   * Asistanın konuşma üslubu/kişiliği. Örn. "Resmi, kısa ve net yanıtlar ver." Sistem promptuna eklenir; güvenlik ve kaynak kurallarını değiştiremez.
+   */
+  persona?: string | null;
+  /**
+   * Boş sohbet ekranında tıklanabilir örnek sorular (en fazla 6). Örn. "İade politikanız nedir?"
+   */
+  suggestedQuestions?:
+    | {
+        question: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prompts".
+ */
+export interface Prompt {
+  id: string;
+  /**
+   * Asistanın ana talimatı: yalnız kaynaklardan cevap ver, uydurma, kullanıcının dilinde yanıtla. {{persona}}, {{sources}}, {{user}} değişkenleri otomatik doldurulur.
+   */
+  systemPrompt?: string | null;
+  /**
+   * İlgili kaynak bulunamadığında gösterilen sabit yanıt. Örn. "Bu konuda elimde bilgi yok."
+   */
+  noContextReply?: string | null;
+  /**
+   * Her tur sonunda konuşma özetini güncellemek için (arka planda; bağlamı kısa tutar).
+   */
+  summaryPrompt?: string | null;
+  /**
+   * Konuşmadan kullanıcı hakkında kalıcı bilgileri çıkarır. Örn. "Kullanıcı hukukla ilgileniyor."
+   */
+  memoryExtractPrompt?: string | null;
+  /**
+   * İlk mesajdan yeni konuşmaya otomatik kısa başlık üretir.
+   */
+  titlePrompt?: string | null;
+  /**
+   * Takip sorularını (örn. "peki ya fiyatı?") önceki bağlamla bağımsız bir aramaya çevirir.
+   */
+  contextualizePrompt?: string | null;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "llm".
+ */
+export interface Llm {
+  id: string;
+  /**
+   * Yanıtı üreten LLM sağlayıcısı. Örn. OpenRouter, Anthropic (Claude), Google Gemini ya da kendi OpenAI-uyumlu sunucunuz.
+   */
+  provider: 'openai-compatible' | 'openrouter' | 'anthropic' | 'gemini';
+  /**
+   * Kullanılacak model kimliği. Örn. openai/gpt-4o-mini (OpenRouter), claude-haiku-4-5 (Anthropic), gemini-2.0-flash (Gemini).
+   */
+  model: string;
+  /**
+   * Sağlayıcının API anahtarı. 🔒 Yalnız admin görür, dışa verilmez. Örn. sk-or-v1-… (OpenRouter).
+   */
+  apiKey?: string | null;
+  /**
+   * Yalnız OpenAI-uyumlu (self-hosted/Azure/Ollama) için gerekir. Örn. http://localhost:11434/v1. Diğer sağlayıcılarda otomatik.
+   */
+  baseUrl?: string | null;
+  /**
+   * Yanıt için üst token sınırı. Örn. 1024. Yüksek = daha uzun yanıt + daha çok maliyet.
+   */
+  maxTokens?: number | null;
+  /**
+   * Yaratıcılık/çeşitlilik: 0 = tutarlı ve net, 1+ = serbest. Bilgi asistanı için 0.2–0.4 önerilir.
+   */
+  temperature?: number | null;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "embedding".
+ */
+export interface Embedding {
+  id: string;
+  /**
+   * Soruyu vektöre çeviren servis. Bilgi tabanını indekslerken kullandığınız modelle AYNI olmalı. DB kendisi vektörize ediyorsa "Yok" seçin.
+   */
+  provider: 'openai' | 'openai-compatible' | 'gemini' | 'none';
+  /**
+   * OpenAI-uyumlu embedding adresi (örn. Ollama). Örn. http://localhost:11434/v1
+   */
+  baseUrl?: string | null;
+  /**
+   * Bilgi tabanını indeksleyen embedding modeliyle AYNI olmalı. Örn. text-embedding-3-small (OpenAI), nomic-embed-text (Ollama), text-embedding-004 (Gemini).
+   */
+  model?: string | null;
+  /**
+   * Embedding servisinin API anahtarı. 🔒 Yalnız admin görür. (Ollama gibi yerel servislerde gerekmeyebilir.)
+   */
+  apiKey?: string | null;
+  /**
+   * ⚠ Vektör DB ile AYNI boyut olmalı. Örn. OpenAI 3-small: 1536, nomic-embed-text: 768. Ollama/uyumlu için BOŞ bırakın (modelin kendi boyutu kullanılır).
+   */
+  dimensions?: number | null;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "retrieval".
+ */
+export interface Retrieval {
+  id: string;
+  /**
+   * Bilgi tabanınızın tutulduğu vektör veritabanı. Örn. Qdrant, Pinecone, Weaviate.
+   */
+  provider: 'pinecone' | 'qdrant' | 'weaviate';
+  /**
+   * Vektör DB adresi. Örn. http://localhost:6333 (Qdrant) veya https://<index>-xxxx.svc.pinecone.io
+   */
+  url?: string | null;
+  /**
+   * Vektör DB erişim anahtarı (gerekiyorsa). 🔒 Yalnız admin görür. Yerel Qdrant'ta boş olabilir.
+   */
+  apiKey?: string | null;
+  /**
+   * Aranacak koleksiyon/index adı. Örn. Qdrant collection: gleam_demo · Pinecone: index adı · Weaviate: Class adı.
+   */
+  index?: string | null;
+  /**
+   * Opsiyonel bölümleme (örn. Pinecone namespace). Boş bırakılabilir.
+   */
+  namespace?: string | null;
+  /**
+   * Her soruda getirilecek en benzer pasaj sayısı. Örn. 5.
+   */
+  topK?: number | null;
+  /**
+   * Benzerlik eşiği (0–1). Bu skorun altındaki pasajlar elenir; hiçbiri geçmezse asistan "bilmiyorum" der. Örn. 0.75. (Tanılama ▸ Sorgu Testi ile ayarlayın.)
+   */
+  minScore?: number | null;
+  /**
+   * Pasaj METNİNİN saklandığı alan adı. Örn. text / content / chunk.
+   */
+  textKey?: string | null;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "memorySettings".
+ */
+export interface MemorySetting {
+  id: string;
+  /**
+   * Konuşmalar ve mesajlar veritabanına kaydedilsin mi? Kapalıysa geçmiş tutulmaz (sidebar boş kalır).
+   */
+  persistConversations?: boolean | null;
+  /**
+   * Modele bağlam olarak verilecek son mesaj sayısı. Örn. 10. Yüksek = daha çok bağlam + daha çok token.
+   */
+  historyWindow?: number | null;
+  /**
+   * Kullanıcı hakkında öğrenilenleri konuşmalar arasında hatırla (ChatGPT "Memory" gibi).
+   */
+  crossConversation?: boolean | null;
+  /**
+   * Eski konuşma/hafıza kaç gün sonra silinsin. Örn. 90. 0 = sınırsız. (Otomatik temizleme ileride eklenecek.)
+   */
+  retentionDays?: number | null;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "limits".
+ */
+export interface Limit {
+  id: string;
+  /**
+   * Tüm kurum için günlük toplam mesaj sınırı (maliyet sigortası). Örn. 1000. 0 = sınırsız.
+   */
+  dailyMessageCap?: number | null;
+  /**
+   * Aynı IP'nin dakikada gönderebileceği mesaj sayısı. Örn. 20. 0 = sınırsız.
+   */
+  perIpRateLimit?: number | null;
+  /**
+   * Tek bir konuşmada izin verilen maksimum mesaj. Örn. 100. 0 = sınırsız.
+   */
+  maxConversationMessages?: number | null;
+  /**
+   * Bir kullanıcının açabileceği maksimum konuşma. Örn. 50. 0 = sınırsız.
+   */
+  maxConversationsPerUser?: number | null;
+  /**
+   * Bu içeriği oluşturan kullanıcı
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Bu içeriği güncelleyen son kullanıcı
+   */
+  updatedBy?: (string | null) | User;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "theme_select".
+ */
+export interface ThemeSelect<T extends boolean = true> {
+  name?: T;
+  brandColor?: T;
   logo?: T;
   logoAlt?: T;
   favicon?: T;
   faviconSvg?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integrations_select".
+ */
+export interface IntegrationsSelect<T extends boolean = true> {
+  google?:
+    | T
+    | {
+        enabled?: T;
+        clientId?: T;
+        clientSecret?: T;
+      };
+  apple?:
+    | T
+    | {
+        enabled?: T;
+        clientId?: T;
+        teamId?: T;
+        keyId?: T;
+        privateKey?: T;
+      };
+  recaptcha?:
+    | T
+    | {
+        enabled?: T;
+        siteKey?: T;
+        secretKey?: T;
+        minScore?: T;
+      };
   createdBy?: T;
   updatedBy?: T;
   _status?: T;
@@ -1087,6 +1795,131 @@ export interface CookiePolicySelect<T extends boolean = true> {
         show?: T;
         text?: T;
       };
+  createdBy?: T;
+  updatedBy?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "persona_select".
+ */
+export interface PersonaSelect<T extends boolean = true> {
+  welcomeMessage?: T;
+  persona?: T;
+  suggestedQuestions?:
+    | T
+    | {
+        question?: T;
+        id?: T;
+      };
+  createdBy?: T;
+  updatedBy?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prompts_select".
+ */
+export interface PromptsSelect<T extends boolean = true> {
+  systemPrompt?: T;
+  noContextReply?: T;
+  summaryPrompt?: T;
+  memoryExtractPrompt?: T;
+  titlePrompt?: T;
+  contextualizePrompt?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "llm_select".
+ */
+export interface LlmSelect<T extends boolean = true> {
+  provider?: T;
+  model?: T;
+  apiKey?: T;
+  baseUrl?: T;
+  maxTokens?: T;
+  temperature?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "embedding_select".
+ */
+export interface EmbeddingSelect<T extends boolean = true> {
+  provider?: T;
+  baseUrl?: T;
+  model?: T;
+  apiKey?: T;
+  dimensions?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "retrieval_select".
+ */
+export interface RetrievalSelect<T extends boolean = true> {
+  provider?: T;
+  url?: T;
+  apiKey?: T;
+  index?: T;
+  namespace?: T;
+  topK?: T;
+  minScore?: T;
+  textKey?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "memorySettings_select".
+ */
+export interface MemorySettingsSelect<T extends boolean = true> {
+  persistConversations?: T;
+  historyWindow?: T;
+  crossConversation?: T;
+  retentionDays?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "limits_select".
+ */
+export interface LimitsSelect<T extends boolean = true> {
+  dailyMessageCap?: T;
+  perIpRateLimit?: T;
+  maxConversationMessages?: T;
+  maxConversationsPerUser?: T;
   createdBy?: T;
   updatedBy?: T;
   _status?: T;
@@ -1147,7 +1980,20 @@ export interface TaskSchedulePublish {
           relationTo: 'roles';
           value: string | Role;
         } | null);
-    global?: ('logo' | 'cookiePolicy') | null;
+    global?:
+      | (
+          | 'theme'
+          | 'integrations'
+          | 'cookiePolicy'
+          | 'persona'
+          | 'prompts'
+          | 'llm'
+          | 'embedding'
+          | 'retrieval'
+          | 'memorySettings'
+          | 'limits'
+        )
+      | null;
     user?: (string | null) | User;
   };
   output?: unknown;

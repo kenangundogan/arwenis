@@ -48,6 +48,7 @@ export const ensureFirstUserIsAdmin: CollectionBeforeValidateHook = async ({
                         _status: 'published',
                     },
                     req,
+                    overrideAccess: true,
                 })
                 adminRoleId = newRole.id
             }
@@ -85,6 +86,7 @@ export const ensureFirstUserIsAdmin: CollectionBeforeValidateHook = async ({
                                 _status: 'published',
                             },
                             req,
+                            overrideAccess: true,
                         } as any)
                         genderId = newGender.id
                     }
@@ -125,6 +127,7 @@ export const ensureFirstUserIsAdmin: CollectionBeforeValidateHook = async ({
                                 size: stats.size,
                             },
                             req,
+                            overrideAccess: true,
                         })
                         payload.logger.info(`Dummy image yüklendi: ${filename}`)
                         return media.id
