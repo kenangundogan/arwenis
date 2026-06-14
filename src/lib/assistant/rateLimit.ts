@@ -28,10 +28,19 @@ export const checkRateLimit = (key: string, max: number, windowMs: number): bool
     return true
 }
 
+const TRUSTED_PROXY_HOPS = Math.max(0, Math.trunc(Number(process.env.TRUSTED_PROXY_HOPS)) || 0)
+
 export const getClientIp = (headers: Headers | null | undefined): string => {
-    return (
-        headers?.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-        headers?.get('x-real-ip') ||
-        'unknown'
-    )
+    const xff = headers?.get('x-forwarded-for')
+    if (xff) {
+        const hops = xff
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        if (hops.length > 0) {
+            const idx = TRUSTED_PROXY_HOPS > 0 ? Math.max(0, hops.length - TRUSTED_PROXY_HOPS) : 0
+            return hops[idx]
+        }
+    }
+    return headers?.get('x-real-ip')?.trim() || 'unknown'
 }
