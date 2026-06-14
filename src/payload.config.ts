@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 import { collections } from './collections'
 import { globals } from './globals'
+import { endpoints } from './endpoints'
 import { tr } from '@payloadcms/translations/languages/tr'
 
 const filename = fileURLToPath(import.meta.url)
@@ -59,7 +60,9 @@ export default buildConfig({
         },
     },
     localization: {
-        locales: ['tr'],
+        locales: [
+            { label: 'Türkçe', code: 'tr' },
+        ],
         defaultLocale: 'tr',
         fallback: true,
     },
@@ -70,6 +73,7 @@ export default buildConfig({
     },
     collections,
     globals,
+    endpoints,
     editor: lexicalEditor(),
     secret: process.env.PAYLOAD_SECRET || '',
     typescript: {

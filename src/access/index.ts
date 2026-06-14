@@ -6,7 +6,6 @@ export { authenticated } from './collection/authenticated'
 export { publicAccess } from './collection/public'
 export { authenticatedOrPublished } from './collection/authenticatedOrPublished'
 
-
 export {
     canCreate,
     canRead,

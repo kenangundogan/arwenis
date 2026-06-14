@@ -9,7 +9,6 @@ export default async function BannerWidget({ req }: WidgetServerProps) {
 
     const user = req.user
 
-    // Format date in Turkish
     const today = new Intl.DateTimeFormat('tr-TR', {
         weekday: 'long',
         year: 'numeric',
