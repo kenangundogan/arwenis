@@ -39,6 +39,7 @@ export const Genders: CollectionConfig<'genders'> = {
         description: true
     },
     admin: {
+        description: 'Cinsiyet tanımları. Üye/kullanıcı profillerinde kullanılan referans verisi.',
         defaultColumns: ['title', 'slug', 'updatedAt'],
         group: 'Kullanıcı Yönetimi',
         useAsTitle: 'title',

@@ -15,6 +15,7 @@ export const Messages: CollectionConfig = {
         delete: canDelete('messages'),
     },
     admin: {
+        description: 'Sohbetlerdeki tekil mesajlar (kullanıcı/asistan). Salt okunur — sunucu tarafında yazılır; kaynak atıfları ve token bilgisi içerir.',
         group: 'Asistan',
         useAsTitle: 'content',
         defaultColumns: ['content', 'role', 'conversation', 'createdAt'],

@@ -33,6 +33,17 @@ export const getOrCreateConversation = async (
     })
 }
 
+export const countConversations = async (payload: Payload, memberId: string): Promise<number> => {
+    const res = await payload.find({
+        collection: 'conversations',
+        where: { and: [{ member: { equals: memberId } }, { deletedAt: { exists: false } }] },
+        limit: 1,
+        depth: 0,
+        overrideAccess: true,
+    })
+    return res.totalDocs
+}
+
 export const loadHistory = async (
     payload: Payload,
     conversationId: string,

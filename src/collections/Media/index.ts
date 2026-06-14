@@ -17,6 +17,7 @@ export const Media: CollectionConfig = {
         delete: canDelete('media'),
     },
     admin: {
+        description: 'Yüklenen görsel ve dosyalar. Okuma herkese açık; yazma yetkiye bağlı.',
         group: 'İçerik',
     },
     fields: [

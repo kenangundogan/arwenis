@@ -10,6 +10,7 @@ import { Conversations } from './Conversations'
 import { Messages } from './Messages'
 import { Memory } from './Memory'
 import { Folders } from './Folders'
+import { Usage } from './Usage'
 
 export const contentCollections = [
     Users,
@@ -24,4 +25,5 @@ export const contentCollections = [
     Messages,
     Memory,
     Folders,
+    Usage,
 ]

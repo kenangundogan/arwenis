@@ -2,7 +2,7 @@ import type { GlobalConfig } from 'payload'
 
 import { auditFields } from '@/fields/auditFields'
 import { canReadGlobal, canUpdateGlobal, canReadVersionsGlobal, adminOnlyField } from '@/access'
-import { llmOptions } from '@/lib/assistant/providers'
+import { llmOptions, isBaseUrlEditable } from '@/lib/assistant/providers'
 
 const secretAccess = { read: adminOnlyField, update: adminOnlyField }
 
@@ -45,9 +45,9 @@ export const Llm: GlobalConfig = {
             label: 'Base URL',
             type: 'text',
             admin: {
-                condition: (_, siblingData) => siblingData?.provider === 'openai-compatible',
+                condition: (_, siblingData) => isBaseUrlEditable(siblingData?.provider),
                 placeholder: 'http://localhost:11434/v1',
-                description: 'Yalnız OpenAI-uyumlu (self-hosted/Azure/Ollama) için gerekir. Örn. http://localhost:11434/v1. Diğer sağlayıcılarda otomatik.',
+                description: 'Yalnız OpenAI-uyumlu (self-hosted/Azure/Ollama) için gerekir. Örn. http://localhost:11434/v1. Diğer sağlayıcılarda sabit (panelden değiştirilemez — güvenlik).',
             },
         },
         {

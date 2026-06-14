@@ -15,6 +15,7 @@ export const Folders: CollectionConfig = {
         delete: canDelete('folders'),
     },
     admin: {
+        description: 'Üyelerin sohbetlerini grupladığı klasörler. Salt okunur — üye tarafında oluşturulur.',
         group: 'Asistan',
         useAsTitle: 'name',
         defaultColumns: ['name', 'member', 'createdAt'],

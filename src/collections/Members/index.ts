@@ -16,6 +16,7 @@ export const Members: CollectionConfig = {
         delete: canDelete('members'),
     },
     admin: {
+        description: 'Asistan son kullanıcıları (üyeler). Admin kullanıcılarından tamamen ayrı; kendi giriş sistemiyle oluşturulur.',
         group: 'Asistan',
         useAsTitle: 'email',
         defaultColumns: ['email', 'displayName', 'authProvider', 'status', 'createdAt'],

@@ -17,8 +17,11 @@ import {
     loadMemories,
     saveMemories,
     buildUserContext,
+    countConversations,
 } from '@/lib/assistant/store'
 import { summarizeAndExtract } from '@/lib/assistant/summarize'
+import { checkDailyCap, incrementUsage } from '@/lib/assistant/usage'
+import { checkRateLimit, getClientIp } from '@/lib/assistant/rateLimit'
 
 const MESSAGE_CHAR_CAP = 4000
 const HISTORY_CHAR_CAP = 8000
@@ -54,15 +57,41 @@ export const chatEndpoint: Endpoint = {
 
         const member = await resolveMember(req)
         if (!member) throw new APIError('Bu işlem için giriş yapmanız gerekir.', 401)
+        const memberId = String(member.id)
 
         const settings = await loadAssistantConfig(req.payload)
 
+        const rateLimit = settings.limits?.perIpRateLimit ?? 0
+        if (rateLimit > 0 && !checkRateLimit(`chat:${getClientIp(req.headers)}`, rateLimit, 60_000)) {
+            throw new APIError('Çok fazla istek gönderildi. Lütfen biraz bekleyin.', 429)
+        }
+
+        if (!(await checkDailyCap(req.payload, settings.limits?.dailyMessageCap))) {
+            throw new APIError('Günlük mesaj sınırına ulaşıldı. Lütfen yarın tekrar deneyin.', 429)
+        }
+
         const historyWindow = settings.memory?.historyWindow ?? 10
         const persistEnabled = !!member && settings.memory?.persistConversations !== false
+        const requestedConvId = body.conversationId?.trim() || undefined
+
+        if (persistEnabled && !requestedConvId) {
+            const maxConvs = settings.limits?.maxConversationsPerUser ?? 0
+            if (maxConvs > 0 && (await countConversations(req.payload, memberId)) >= maxConvs) {
+                throw new APIError('En fazla konuşma sayısına ulaştınız. Lütfen eski bir konuşmayı silin.', 409)
+            }
+        }
 
         const conv = persistEnabled
-            ? await getOrCreateConversation(req.payload, String(member!.id), body.conversationId)
+            ? await getOrCreateConversation(req.payload, memberId, requestedConvId)
             : null
+
+        if (persistEnabled && requestedConvId && conv) {
+            const maxMsgs = settings.limits?.maxConversationMessages ?? 0
+            if (maxMsgs > 0 && (conv.messageCount ?? 0) >= maxMsgs) {
+                throw new APIError('Bu konuşma mesaj sınırına ulaştı. Lütfen yeni bir konuşma başlatın.', 409)
+            }
+        }
+
         const isFirstTurn = !!conv && (conv.messageCount ?? 0) === 0
         const history: ChatMessage[] = conv
             ? await loadHistory(req.payload, String(conv.id), historyWindow)
@@ -82,24 +111,31 @@ export const chatEndpoint: Endpoint = {
         let usage: { inputTokens?: number; outputTokens?: number } | undefined
         let citations: Citation[] = []
         let usedCitations: UsedCitation[] = []
-        let persisted = false
+        let finalized = false
 
-        const persistOnce = async () => {
-            if (!persistEnabled || !conv || persisted) return
-            persisted = true
-            await persistTurn(req.payload, {
-                conv,
-                userText: message,
-                assistantText: full,
-                citations: usedCitations,
-                tokensIn: usage?.inputTokens,
-                tokensOut: usage?.outputTokens,
-            })
-            if (isFirstTurn) await generateTitle(req.payload, settings, conv, message)
+        const finalize = async () => {
+            if (finalized) return
+            finalized = true
+            try {
+                if (persistEnabled && conv) {
+                    await persistTurn(req.payload, {
+                        conv,
+                        userText: message,
+                        assistantText: full,
+                        citations: usedCitations,
+                        tokensIn: usage?.inputTokens,
+                        tokensOut: usage?.outputTokens,
+                    })
+                    if (isFirstTurn) await generateTitle(req.payload, settings, conv, message)
+                }
+            } catch (err) {
+                req.payload.logger.error({ err }, '[assistant] persist failed')
+            }
+            await incrementUsage(req.payload, (usage?.inputTokens ?? 0) + (usage?.outputTokens ?? 0))
         }
 
         const runMemory = async () => {
-            if (!persistEnabled || !conv || citations.length === 0) return
+            if (!persistEnabled || !conv) return
             try {
                 const turns: ChatMessage[] = [
                     ...history,
@@ -173,7 +209,10 @@ export const chatEndpoint: Endpoint = {
                                 usage = { inputTokens: ev.inputTokens, outputTokens: ev.outputTokens }
                             } else if (ev.type === 'error') {
                                 send({ type: 'error', message: ev.message })
-
+                                if (full) {
+                                    usedCitations = extractUsedCitations(full, citations)
+                                    await finalize()
+                                }
                                 controller.close()
                                 return
                             } else if (ev.type === 'done') {
@@ -184,7 +223,7 @@ export const chatEndpoint: Endpoint = {
                         send({ type: 'citations', citations: usedCitations })
                     }
 
-                    await persistOnce()
+                    await finalize()
                     send({ type: 'done', usage })
                     await runMemory()
                     controller.close()
@@ -193,7 +232,7 @@ export const chatEndpoint: Endpoint = {
 
                         usedCitations = extractUsedCitations(full, citations)
                         try {
-                            await persistOnce()
+                            await finalize()
                         } catch {
                                                     }
                     } else {
