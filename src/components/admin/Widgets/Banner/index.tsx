@@ -29,7 +29,7 @@ export default async function BannerWidget({ req }: WidgetServerProps) {
                     Hoş Geldiniz{user && 'email' in user && user.email ? `, ${user.email.split('@')[0]}` : ''}! 👋
                 </h2>
                 <p className="text-zinc-500 max-w-lg">
-                    Arwenis'e hoş geldiniz! Dashboard'unuzu keşfedin, yeni özellikleri deneyimleyin ve bize geri bildirimde bulunun. Harika bir deneyim için buradayız!
+                    {"Arwenis'e hoş geldiniz! Dashboard'unuzu keşfedin, yeni özellikleri deneyimleyin ve görüşlerinizi bizimle paylaşın. Harika bir deneyim için buradayız!"}
                 </p>
             </div>
 
