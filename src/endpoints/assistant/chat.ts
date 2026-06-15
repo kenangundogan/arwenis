@@ -178,7 +178,7 @@ export const chatEndpoint: Endpoint = {
                     try {
                         controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`))
                     } catch {
-                                            }
+                    }
                 }
 
                 try {
@@ -244,14 +244,14 @@ export const chatEndpoint: Endpoint = {
                         try {
                             await finalize()
                         } catch {
-                                                    }
+                        }
                     } else {
                         send({ type: 'error', message: (err as Error).message })
                     }
                     try {
                         controller.close()
                     } catch {
-                                            }
+                    }
                 }
             },
             cancel() {

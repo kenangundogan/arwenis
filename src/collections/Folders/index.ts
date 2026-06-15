@@ -53,5 +53,15 @@ export const Folders: CollectionConfig = {
                 return data
             },
         ],
+        afterDelete: [
+            async ({ req, id }) => {
+                await req.payload.update({
+                    collection: 'conversations',
+                    where: { folder: { equals: id } },
+                    data: { folder: null },
+                    overrideAccess: true,
+                })
+            },
+        ],
     },
 }

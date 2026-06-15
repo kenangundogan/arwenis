@@ -1,7 +1,8 @@
 import type { CollectionConfig } from 'payload'
 import { APIError } from 'payload'
 
-import { canReadSecure, canUpdate, canDelete, adminOnlyField } from '@/access'
+import { canReadSecure, canDelete, adminOnlyField } from '@/access'
+import { memberSelfUpdate, notMemberField } from '@/access/collection/memberOwned'
 import { preventHardDelete } from '@/access/collection/preventHardDelete'
 import {
     composeValidators,
@@ -27,7 +28,7 @@ export const Members: CollectionConfig = {
     access: {
         create: () => true,
         read: canReadSecure('members'),
-        update: canUpdate('members'),
+        update: memberSelfUpdate('members'),
         delete: canDelete('members'),
     },
     admin: {
@@ -46,6 +47,13 @@ export const Members: CollectionConfig = {
             required: true,
             unique: true,
             index: true,
+            access: { update: notMemberField },
+        },
+        {
+            name: 'password',
+            type: 'text',
+            hidden: true,
+            access: { update: notMemberField },
         },
         {
             name: 'status',
@@ -57,7 +65,7 @@ export const Members: CollectionConfig = {
                 { label: 'Aktif', value: 'active' },
                 { label: 'Engelli', value: 'blocked' },
             ],
-            access: { create: adminOnlyField },
+            access: { create: adminOnlyField, update: notMemberField },
             admin: { position: 'sidebar', description: 'Engelli üye giriş yapamaz (yalnız yönetici değiştirir).' },
         },
         {
@@ -70,7 +78,7 @@ export const Members: CollectionConfig = {
             name: 'lastSeenAt',
             label: 'Son Görülme',
             type: 'date',
-            access: { create: adminOnlyField },
+            access: { create: adminOnlyField, update: notMemberField },
             admin: { readOnly: true, position: 'sidebar' },
         },
         {

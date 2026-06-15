@@ -42,7 +42,11 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    conversations: {
+      messages: 'messages';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -462,6 +466,7 @@ export interface Day {
  */
 export interface Member {
   id: string;
+  password?: string | null;
   /**
    * Engelli üye giriş yapamaz (yalnız yönetici değiştirir).
    */
@@ -532,7 +537,6 @@ export interface Member {
         expiresAt: string;
       }[]
     | null;
-  password?: string | null;
   collection: 'members';
 }
 /**
@@ -571,6 +575,14 @@ export interface Conversation {
   messageCount?: number | null;
   tokensTotal?: number | null;
   lastMessageAt?: string | null;
+  /**
+   * Bu konuşmaya ait mesajlar (kronolojik).
+   */
+  messages?: {
+    docs?: (string | Message)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -589,7 +601,7 @@ export interface Folder {
   createdAt: string;
 }
 /**
- * Sohbetlerdeki tekil mesajlar (kullanıcı/asistan). Salt okunur — sunucu tarafında yazılır; kaynak atıfları ve token bilgisi içerir.
+ * Sohbetlerdeki tekil mesajlar (kullanıcı/asistan). Salt okunur — sunucu tarafında yazılır; üye yalnızca kendi mesajının geri bildirimini (👍/👎) güncelleyebilir.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "messages".
@@ -1172,6 +1184,7 @@ export interface RolesSelect<T extends boolean = true> {
  * via the `definition` "members_select".
  */
 export interface MembersSelect<T extends boolean = true> {
+  password?: T;
   status?: T;
   locale?: T;
   lastSeenAt?: T;
@@ -1228,6 +1241,7 @@ export interface ConversationsSelect<T extends boolean = true> {
   messageCount?: T;
   tokensTotal?: T;
   lastMessageAt?: T;
+  messages?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
