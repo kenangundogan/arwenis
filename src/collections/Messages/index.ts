@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { canDelete } from '@/access'
-import { memberOwnedRead } from '@/access/collection/memberOwned'
+import { memberOwnedRead, memberOwnedUpdate, notMemberField } from '@/access/collection/memberOwned'
 
 export const Messages: CollectionConfig = {
     slug: 'messages',
@@ -12,11 +12,11 @@ export const Messages: CollectionConfig = {
     access: {
         create: () => false,
         read: memberOwnedRead('messages'),
-        update: () => false,
+        update: memberOwnedUpdate,
         delete: canDelete('messages'),
     },
     admin: {
-        description: 'Sohbetlerdeki tekil mesajlar (kullanıcı/asistan). Salt okunur — sunucu tarafında yazılır; kaynak atıfları ve token bilgisi içerir.',
+        description: 'Sohbetlerdeki tekil mesajlar (kullanıcı/asistan). Salt okunur — sunucu tarafında yazılır; üye yalnızca kendi mesajının geri bildirimini (👍/👎) güncelleyebilir.',
         group: 'Asistan',
         useAsTitle: 'content',
         defaultColumns: ['content', 'role', 'conversation', 'createdAt'],
@@ -29,6 +29,7 @@ export const Messages: CollectionConfig = {
             relationTo: 'conversations',
             index: true,
             required: true,
+            access: { update: notMemberField },
         },
         {
             name: 'member',
@@ -36,6 +37,7 @@ export const Messages: CollectionConfig = {
             type: 'relationship',
             relationTo: 'members',
             index: true,
+            access: { update: notMemberField },
             admin: { readOnly: true, position: 'sidebar' },
         },
         {
@@ -43,6 +45,7 @@ export const Messages: CollectionConfig = {
             label: 'Rol',
             type: 'select',
             required: true,
+            access: { update: notMemberField },
             options: [
                 { label: 'Kullanıcı', value: 'user' },
                 { label: 'Asistan', value: 'assistant' },
@@ -53,18 +56,20 @@ export const Messages: CollectionConfig = {
             label: 'İçerik',
             type: 'textarea',
             required: true,
+            access: { update: notMemberField },
         },
         {
             name: 'citations',
             label: 'Kaynaklar',
             type: 'json',
+            access: { update: notMemberField },
             admin: { description: 'Kullanılan kaynaklar [{n,title,url,score}]' },
         },
         {
             type: 'row',
             fields: [
-                { name: 'tokensIn', label: 'Token (girdi)', type: 'number', admin: { width: '50%' } },
-                { name: 'tokensOut', label: 'Token (çıktı)', type: 'number', admin: { width: '50%' } },
+                { name: 'tokensIn', label: 'Token (girdi)', type: 'number', access: { update: notMemberField }, admin: { width: '50%' } },
+                { name: 'tokensOut', label: 'Token (çıktı)', type: 'number', access: { update: notMemberField }, admin: { width: '50%' } },
             ],
         },
         {

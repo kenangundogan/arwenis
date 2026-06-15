@@ -61,7 +61,6 @@ export const Conversations: CollectionConfig = {
             label: 'Durum',
             type: 'select',
             defaultValue: 'active',
-            access: { update: notMemberField },
             options: [
                 { label: 'Aktif', value: 'active' },
                 { label: 'Arşiv', value: 'archived' },
@@ -91,6 +90,18 @@ export const Conversations: CollectionConfig = {
             index: true,
             access: { update: notMemberField },
             admin: { readOnly: true, position: 'sidebar' },
+        },
+        {
+            name: 'messages',
+            label: 'Mesajlar',
+            type: 'join',
+            collection: 'messages',
+            on: 'conversation',
+            defaultSort: 'createdAt',
+            admin: {
+                defaultColumns: ['role', 'content', 'feedback', 'createdAt'],
+                description: 'Bu konuşmaya ait mesajlar (kronolojik).',
+            },
         },
     ],
     hooks: {

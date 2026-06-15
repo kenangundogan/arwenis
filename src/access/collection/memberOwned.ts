@@ -1,7 +1,7 @@
 import type { Access, FieldAccess, Where } from 'payload'
 import { isMember } from '../utils'
 import { canReadSecure } from './canReadSecure'
-import { canDelete } from './withPermission'
+import { canDelete, canUpdate } from './withPermission'
 
 const ownWhere = (id: string | number): Where => ({ member: { equals: id } })
 
@@ -19,6 +19,9 @@ export const memberCreate: Access = ({ req }) => isMember(req.user)
 // Update: member → only own records; non-members blocked (server writes use overrideAccess).
 export const memberOwnedUpdate: Access = ({ req }) =>
     isMember(req.user) ? ownWhere(req.user!.id) : false
+
+export const memberSelfUpdate = (resource: string): Access => async (args) =>
+    isMember(args.req.user) ? { id: { equals: args.req.user!.id } } : canUpdate(resource)(args)
 
 // Field-level: block members from writing server-managed fields.
 export const notMemberField: FieldAccess = ({ req }) => !isMember(req.user)
