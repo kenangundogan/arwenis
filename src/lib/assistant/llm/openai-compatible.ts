@@ -1,5 +1,5 @@
 import type { LLMStreamParams, StreamEvent } from '../types'
-import { parseSSE, safeErrorText } from './sse'
+import { parseSSE, safeErrorText, withTimeout } from './sse'
 
 export async function* openaiCompatibleStream(p: LLMStreamParams): AsyncGenerator<StreamEvent> {
     let res: Response
@@ -18,7 +18,7 @@ export async function* openaiCompatibleStream(p: LLMStreamParams): AsyncGenerato
                 stream: true,
                 stream_options: { include_usage: true },
             }),
-            signal: p.signal,
+            signal: withTimeout(p.signal),
         })
     } catch (err) {
         yield { type: 'error', message: `LLM bağlantı hatası: ${(err as Error).message}` }

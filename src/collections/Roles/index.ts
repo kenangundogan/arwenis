@@ -82,7 +82,8 @@ export const Roles: CollectionConfig<'roles'> = {
             hasMany: true,
             required: true,
             admin: {
-                description: 'Bu role atanacak izinler',
+                description:
+                    'Bilgilendirme amaçlı etiket. Gerçek yetkilendirme "Permissions" koleksiyonundaki kullanıcı kayıtları üzerinden uygulanır.',
             },
             options: [
                 {

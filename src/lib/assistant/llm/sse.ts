@@ -29,6 +29,9 @@ export async function* parseSSE(response: Response): AsyncGenerator<string> {
     }
 }
 
+export const withTimeout = (signal: AbortSignal | undefined, ms = 120_000): AbortSignal =>
+    signal ? AbortSignal.any([signal, AbortSignal.timeout(ms)]) : AbortSignal.timeout(ms)
+
 export const safeErrorText = async (response: Response): Promise<string> => {
     try {
         const text = await response.text()

@@ -1,7 +1,16 @@
 import type { CollectionConfig } from 'payload'
+import { APIError } from 'payload'
 
-import { canReadSecure, canDelete } from '@/access'
+import { canReadSecure, canUpdate, canDelete, adminOnlyField } from '@/access'
 import { preventHardDelete } from '@/access/collection/preventHardDelete'
+import {
+    composeValidators,
+    onlyText,
+    minLength,
+    maxLength,
+    phone,
+    generalText,
+} from '@/utilities/validators'
 
 export const Members: CollectionConfig = {
     slug: 'members',
@@ -9,33 +18,27 @@ export const Members: CollectionConfig = {
         singular: 'Üye',
         plural: 'Üyeler',
     },
+    auth: {
+        tokenExpiration: 60 * 60 * 24 * 30,
+        maxLoginAttempts: 5,
+        lockTime: 10 * 60 * 1000,
+        cookies: { sameSite: 'Lax' },
+    },
     access: {
-        create: () => false,
+        create: () => true,
         read: canReadSecure('members'),
-        update: () => false,
+        update: canUpdate('members'),
         delete: canDelete('members'),
     },
     admin: {
-        description: 'Asistan son kullanıcıları (üyeler). Admin kullanıcılarından tamamen ayrı; kendi giriş sistemiyle oluşturulur.',
+        description: 'Asistan son kullanıcıları (üyeler). Admin kullanıcılarından tamamen ayrı; kendi giriş sistemiyle kayıt olur. Bağlı giriş yöntemleri "Üye Hesapları"nda tutulur.',
         group: 'Asistan',
         useAsTitle: 'email',
-        defaultColumns: ['email', 'displayName', 'authProvider', 'status', 'createdAt'],
-        listSearchableFields: ['email', 'displayName', 'externalId'],
+        defaultColumns: ['email', 'firstName', 'lastName', 'status', 'createdAt'],
+        listSearchableFields: ['email', 'firstName', 'lastName'],
     },
     trash: true,
     fields: [
-        {
-            name: 'authProvider',
-            label: 'Kimlik Kaynağı',
-            type: 'select',
-            required: true,
-            defaultValue: 'email',
-            options: [
-                { label: 'E-posta', value: 'email' },
-                { label: 'OAuth', value: 'oauth' },
-            ],
-            admin: { readOnly: true, position: 'sidebar' },
-        },
         {
             name: 'email',
             label: 'E-posta',
@@ -43,26 +46,6 @@ export const Members: CollectionConfig = {
             required: true,
             unique: true,
             index: true,
-        },
-        {
-            name: 'passwordHash',
-            label: 'Şifre (hash)',
-            type: 'text',
-            hidden: true,
-
-            access: { read: () => false },
-        },
-        {
-            name: 'externalId',
-            label: 'Harici ID',
-            type: 'text',
-            index: true,
-            admin: { readOnly: true, description: 'OAuth sağlayıcı kimliği (sub)' },
-        },
-        {
-            name: 'displayName',
-            label: 'Görünen Ad',
-            type: 'text',
         },
         {
             name: 'status',
@@ -74,22 +57,140 @@ export const Members: CollectionConfig = {
                 { label: 'Aktif', value: 'active' },
                 { label: 'Engelli', value: 'blocked' },
             ],
-            admin: { position: 'sidebar' },
+            access: { create: adminOnlyField },
+            admin: { position: 'sidebar', description: 'Engelli üye giriş yapamaz (yalnız yönetici değiştirir).' },
         },
         {
             name: 'locale',
             label: 'Dil',
             type: 'text',
-            admin: { readOnly: true, position: 'sidebar' },
+            admin: { position: 'sidebar', description: 'Üyenin tercih ettiği dil (örn. tr).' },
         },
         {
             name: 'lastSeenAt',
             label: 'Son Görülme',
             type: 'date',
+            access: { create: adminOnlyField },
             admin: { readOnly: true, position: 'sidebar' },
+        },
+        {
+            type: 'tabs',
+            tabs: [
+                {
+                    label: 'Genel',
+                    fields: [
+                        {
+                            name: 'firstName',
+                            label: 'Ad',
+                            type: 'text',
+                            validate: composeValidators(onlyText(), minLength(2), maxLength(50)),
+                            admin: { placeholder: 'Örn. Kenan', description: 'Üyenin adı.' },
+                        },
+                        {
+                            name: 'lastName',
+                            label: 'Soyad',
+                            type: 'text',
+                            validate: composeValidators(onlyText(), minLength(2), maxLength(50)),
+                            admin: { placeholder: 'Örn. Gündoğan', description: 'Üyenin soyadı.' },
+                        },
+                        {
+                            name: 'birthDate',
+                            label: 'Doğum Tarihi',
+                            type: 'date',
+                            admin: {
+                                description: 'Üyenin doğum tarihi (opsiyonel).',
+                                date: { pickerAppearance: 'dayOnly', displayFormat: 'd MMMM yyyy' },
+                            },
+                        },
+                    ],
+                },
+                {
+                    label: 'Cinsiyet',
+                    fields: [
+                        {
+                            name: 'gender',
+                            label: 'Cinsiyet',
+                            type: 'relationship',
+                            relationTo: 'genders',
+                            admin: { description: 'Üyenin cinsiyeti (opsiyonel).' },
+                        },
+                    ],
+                },
+                {
+                    label: 'Adres',
+                    fields: [
+                        {
+                            name: 'country',
+                            label: 'Ülke',
+                            type: 'relationship',
+                            relationTo: 'countries',
+                            admin: { description: 'Üyenin ülkesi.' },
+                        },
+                        {
+                            name: 'city',
+                            label: 'Şehir',
+                            type: 'relationship',
+                            relationTo: 'cities',
+                            admin: { description: 'Üyenin şehri.' },
+                        },
+                        {
+                            name: 'district',
+                            label: 'İlçe',
+                            type: 'text',
+                            validate: composeValidators(onlyText(), minLength(2), maxLength(50)),
+                            admin: { placeholder: 'Örn. Beşiktaş', description: 'Üyenin ilçesi.' },
+                        },
+                        {
+                            name: 'address',
+                            label: 'Adres',
+                            type: 'textarea',
+                            validate: composeValidators(generalText(), minLength(2), maxLength(250)),
+                            admin: { placeholder: 'Örn. ... Mah. ... Sok. No: 1', description: 'Üyenin açık adresi.' },
+                        },
+                    ],
+                },
+                {
+                    label: 'İletişim',
+                    fields: [
+                        {
+                            name: 'gsm',
+                            label: 'Cep Telefonu',
+                            type: 'text',
+                            validate: composeValidators(phone()),
+                            admin: { placeholder: 'Örn. 0555 555 55 55', description: 'Üyenin cep telefonu.' },
+                        },
+                        {
+                            name: 'landline',
+                            label: 'Sabit Telefon',
+                            type: 'text',
+                            validate: composeValidators(phone()),
+                            admin: { placeholder: 'Örn. 0212 555 55 55', description: 'Üyenin sabit telefonu.' },
+                        },
+                    ],
+                },
+                {
+                    label: 'Avatar',
+                    fields: [
+                        {
+                            name: 'avatar',
+                            label: 'Profil Görseli',
+                            type: 'upload',
+                            relationTo: 'media',
+                            admin: { description: 'Üyenin profil görseli (opsiyonel).' },
+                        },
+                    ],
+                },
+            ],
         },
     ],
     hooks: {
+        beforeLogin: [
+            ({ user }) => {
+                if ((user as { status?: string })?.status === 'blocked') {
+                    throw new APIError('Erişiminiz engellenmiştir.', 403)
+                }
+            },
+        ],
         beforeDelete: [preventHardDelete],
     },
 }

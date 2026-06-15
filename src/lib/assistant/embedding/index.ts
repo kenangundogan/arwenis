@@ -4,6 +4,7 @@ export type EmbedFn = (text: string) => Promise<number[]>
 
 const OPENAI_BASE = 'https://api.openai.com/v1'
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta'
+const EMBED_TIMEOUT_MS = 30_000
 
 class EmbeddingError extends Error {
     constructor(message: string) {
@@ -36,6 +37,7 @@ export const buildEmbedFn = (cfg: ResolvedEmbedding): EmbedFn | null => {
 
                     ...(cfg.dimensions ? { dimensions: cfg.dimensions } : {}),
                 }),
+                signal: AbortSignal.timeout(EMBED_TIMEOUT_MS),
             })
             if (!res.ok) {
                 throw new EmbeddingError(`Embedding hatası (${res.status}): ${(await res.text()).slice(0, 300)}`)
@@ -54,6 +56,7 @@ export const buildEmbedFn = (cfg: ResolvedEmbedding): EmbedFn | null => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: { parts: [{ text }] } }),
+                signal: AbortSignal.timeout(EMBED_TIMEOUT_MS),
             })
             if (!res.ok) {
                 throw new EmbeddingError(`Gemini embedding hatası (${res.status}): ${(await res.text()).slice(0, 300)}`)

@@ -1,9 +1,7 @@
 import type { Access } from 'payload'
 
 export const isAdmin: Access = ({ req: { user } }) => {
-    if (!user) return false
+    if (!user || !('roles' in user) || typeof user.roles !== 'object' || user.roles === null) return false
 
-    const userRole = typeof user.roles === 'object' && user.roles !== null ? user.roles.slug : null
-
-    return userRole === 'admin'
+    return 'slug' in user.roles && user.roles.slug === 'admin'
 }

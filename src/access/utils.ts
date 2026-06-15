@@ -1,8 +1,13 @@
 import type { PayloadRequest } from 'payload'
-import type { User, Permission } from '@/payload-types'
+import type { User, Member, Permission } from '@/payload-types'
 
-export const isAdmin = (user: User | null | undefined): boolean => {
-    if (!user) return false
+export type AuthUser = User | Member
+
+export const isMember = (user: AuthUser | null | undefined): boolean =>
+    !!user && (user as { collection?: string }).collection === 'members'
+
+export const isAdmin = (user: AuthUser | null | undefined): boolean => {
+    if (!user || !('roles' in user) || !user.roles) return false
 
     if (Array.isArray(user.roles)) {
         return user.roles.some(
@@ -43,11 +48,11 @@ export const getUserPermissionRecord = async (
 
 export const hasPermission = async (
     req: PayloadRequest,
-    user: User | null | undefined,
+    user: AuthUser | null | undefined,
     resource: string,
     action: 'create' | 'read' | 'update' | 'delete' | 'publish' | 'readVersions' | 'hardDelete'
 ): Promise<boolean> => {
-    if (!user) return false
+    if (!user || !('roles' in user)) return false
 
     if (isAdmin(user)) return true
 
@@ -90,10 +95,10 @@ export const hasPermission = async (
 
 export const hasAnyPermission = async (
     req: PayloadRequest,
-    user: User | null | undefined,
+    user: AuthUser | null | undefined,
     resource: string,
 ): Promise<boolean> => {
-    if (!user) return false
+    if (!user || !('roles' in user)) return false
     if (isAdmin(user)) return true
 
     if (user.roles && typeof user.roles === 'string') {
@@ -135,10 +140,10 @@ export const hasAnyPermission = async (
 
 export const getPermissionScope = async (
     req: PayloadRequest,
-    user: User | null | undefined,
+    user: AuthUser | null | undefined,
     resource: string,
 ): Promise<'none' | 'own' | 'all'> => {
-    if (!user) return 'none'
+    if (!user || !('roles' in user)) return 'none'
     if (isAdmin(user)) return 'all'
 
     if (user.roles && typeof user.roles === 'string') {

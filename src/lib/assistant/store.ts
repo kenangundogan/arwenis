@@ -23,8 +23,9 @@ export const getOrCreateConversation = async (
                 overrideAccess: true,
             })
             if (conv && !conv.deletedAt && relId(conv.member) === memberId) return conv
-        } catch {
-                    }
+        } catch (err) {
+            payload.logger.error({ err }, '[assistant] conversation lookup failed')
+        }
     }
     return payload.create({
         collection: 'conversations',
@@ -75,16 +76,18 @@ export const persistTurn = async (
     },
 ): Promise<void> => {
     const { conv } = args
+    const member = relId(conv.member)
 
     await payload.create({
         collection: 'messages',
-        data: { conversation: conv.id, role: 'user', content: args.userText },
+        data: { conversation: conv.id, member, role: 'user', content: args.userText },
         overrideAccess: true,
     })
     await payload.create({
         collection: 'messages',
         data: {
             conversation: conv.id,
+            member,
             role: 'assistant',
             content: args.assistantText || '(boş yanıt)',
             citations: args.citations.length ? args.citations : undefined,
@@ -184,6 +187,7 @@ export const generateTitle = async (
         if (title) {
             await payload.update({ collection: 'conversations', id: conv.id, data: { title }, overrideAccess: true })
         }
-    } catch {
-            }
+    } catch (err) {
+        payload.logger.error({ err }, '[assistant] title generation failed')
+    }
 }

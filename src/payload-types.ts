@@ -17,6 +17,7 @@ export type SupportedTimezones = 'UTC' | 'Europe/Istanbul';
 export interface Config {
   auth: {
     users: UserAuthOperations;
+    members: MemberAuthOperations;
   };
   blocks: {};
   collections: {
@@ -28,6 +29,7 @@ export interface Config {
     genders: Gender;
     roles: Role;
     members: Member;
+    'member-accounts': MemberAccount;
     conversations: Conversation;
     messages: Message;
     memory: Memory;
@@ -50,6 +52,7 @@ export interface Config {
     genders: GendersSelect<false> | GendersSelect<true>;
     roles: RolesSelect<false> | RolesSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
+    'member-accounts': MemberAccountsSelect<false> | MemberAccountsSelect<true>;
     conversations: ConversationsSelect<false> | ConversationsSelect<true>;
     messages: MessagesSelect<false> | MessagesSelect<true>;
     memory: MemorySelect<false> | MemorySelect<true>;
@@ -95,7 +98,7 @@ export interface Config {
     'banner-widget': BannerWidgetWidget;
     collections: CollectionsWidget;
   };
-  user: User;
+  user: User | Member;
   jobs: {
     tasks: {
       schedulePublish: TaskSchedulePublish;
@@ -108,6 +111,24 @@ export interface Config {
   };
 }
 export interface UserAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
+  };
+}
+export interface MemberAuthOperations {
   forgotPassword: {
     email: string;
     password: string;
@@ -237,7 +258,7 @@ export interface Role {
    */
   description: string;
   /**
-   * Bu role atanacak izinler
+   * Bilgilendirme amaçlı etiket. Gerçek yetkilendirme "Permissions" koleksiyonundaki kullanıcı kayıtları üzerinden uygulanır.
    */
   permissions: ('create' | 'read' | 'update' | 'delete')[];
   /**
@@ -434,27 +455,102 @@ export interface Day {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Asistan son kullanıcıları (üyeler). Admin kullanıcılarından tamamen ayrı; kendi giriş sistemiyle oluşturulur.
+ * Asistan son kullanıcıları (üyeler). Admin kullanıcılarından tamamen ayrı; kendi giriş sistemiyle kayıt olur. Bağlı giriş yöntemleri "Üye Hesapları"nda tutulur.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "members".
  */
 export interface Member {
   id: string;
-  authProvider: 'email' | 'oauth';
-  email: string;
-  passwordHash?: string | null;
   /**
-   * OAuth sağlayıcı kimliği (sub)
+   * Engelli üye giriş yapamaz (yalnız yönetici değiştirir).
    */
-  externalId?: string | null;
-  displayName?: string | null;
   status: 'active' | 'blocked';
+  /**
+   * Üyenin tercih ettiği dil (örn. tr).
+   */
   locale?: string | null;
   lastSeenAt?: string | null;
+  /**
+   * Üyenin adı.
+   */
+  firstName?: string | null;
+  /**
+   * Üyenin soyadı.
+   */
+  lastName?: string | null;
+  /**
+   * Üyenin doğum tarihi (opsiyonel).
+   */
+  birthDate?: string | null;
+  /**
+   * Üyenin cinsiyeti (opsiyonel).
+   */
+  gender?: (string | null) | Gender;
+  /**
+   * Üyenin ülkesi.
+   */
+  country?: (string | null) | Country;
+  /**
+   * Üyenin şehri.
+   */
+  city?: (string | null) | City;
+  /**
+   * Üyenin ilçesi.
+   */
+  district?: string | null;
+  /**
+   * Üyenin açık adresi.
+   */
+  address?: string | null;
+  /**
+   * Üyenin cep telefonu.
+   */
+  gsm?: string | null;
+  /**
+   * Üyenin sabit telefonu.
+   */
+  landline?: string | null;
+  /**
+   * Üyenin profil görseli (opsiyonel).
+   */
+  avatar?: (string | null) | Media;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'members';
+}
+/**
+ * Bir üyenin bağlı giriş yöntemleri (Google, Apple, ...). Üye birden çok yöntemle giriş yapabilir. Salt okunur — OAuth akışı sunucu tarafında yazar; üye kendi bağlı hesabını kaldırabilir.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "member-accounts".
+ */
+export interface MemberAccount {
+  id: string;
+  member: string | Member;
+  provider: 'google' | 'apple';
+  /**
+   * Sağlayıcının verdiği benzersiz kullanıcı kimliği (OAuth "sub").
+   */
+  providerAccountId: string;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Üyelerin asistan sohbetleri. Salt okunur — sunucu tarafında oluşturulur; mesaj/token sayacı ve özet içerir.
@@ -468,7 +564,7 @@ export interface Conversation {
   folder?: (string | null) | Folder;
   title?: string | null;
   /**
-   * Konuşma özeti — her tur sonunda güncellenir (Faz 5)
+   * Konuşma özeti — her tur sonunda güncellenir.
    */
   summary?: string | null;
   status?: ('active' | 'archived') | null;
@@ -501,10 +597,11 @@ export interface Folder {
 export interface Message {
   id: string;
   conversation: string | Conversation;
+  member?: (string | null) | Member;
   role: 'user' | 'assistant';
   content: string;
   /**
-   * Kullanılan kaynaklar [{n,title,url,score}] (§4.2)
+   * Kullanılan kaynaklar [{n,title,url,score}]
    */
   citations?:
     | {
@@ -596,6 +693,10 @@ export interface Permission {
     actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
   };
   members: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  'member-accounts': {
     scope: 'none' | 'own' | 'all';
     actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
   };
@@ -843,6 +944,10 @@ export interface PayloadLockedDocument {
         value: string | Member;
       } | null)
     | ({
+        relationTo: 'member-accounts';
+        value: string | MemberAccount;
+      } | null)
+    | ({
         relationTo: 'conversations';
         value: string | Conversation;
       } | null)
@@ -867,10 +972,15 @@ export interface PayloadLockedDocument {
         value: string | Permission;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'users';
-    value: string | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: string | User;
+      }
+    | {
+        relationTo: 'members';
+        value: string | Member;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -880,10 +990,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: string;
-  user: {
-    relationTo: 'users';
-    value: string | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: string | User;
+      }
+    | {
+        relationTo: 'members';
+        value: string | Member;
+      };
   key?: string | null;
   value?:
     | {
@@ -1057,17 +1172,48 @@ export interface RolesSelect<T extends boolean = true> {
  * via the `definition` "members_select".
  */
 export interface MembersSelect<T extends boolean = true> {
-  authProvider?: T;
-  email?: T;
-  passwordHash?: T;
-  externalId?: T;
-  displayName?: T;
   status?: T;
   locale?: T;
   lastSeenAt?: T;
+  firstName?: T;
+  lastName?: T;
+  birthDate?: T;
+  gender?: T;
+  country?: T;
+  city?: T;
+  district?: T;
+  address?: T;
+  gsm?: T;
+  landline?: T;
+  avatar?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "member-accounts_select".
+ */
+export interface MemberAccountsSelect<T extends boolean = true> {
+  member?: T;
+  provider?: T;
+  providerAccountId?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1092,6 +1238,7 @@ export interface ConversationsSelect<T extends boolean = true> {
  */
 export interface MessagesSelect<T extends boolean = true> {
   conversation?: T;
+  member?: T;
   role?: T;
   content?: T;
   citations?: T;
@@ -1182,6 +1329,12 @@ export interface PermissionsSelect<T extends boolean = true> {
         actions?: T;
       };
   members?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  'member-accounts'?:
     | T
     | {
         scope?: T;
@@ -1393,7 +1546,7 @@ export interface Theme {
 export interface Integration {
   id: string;
   /**
-   * Yönlendirme URI: <site>/api/assistant/auth/google/callback
+   * Yönlendirme URI: <site>/api/assistant/auth/google/callback (yakında).
    */
   google?: {
     /**
@@ -1429,7 +1582,7 @@ export interface Integration {
     privateKey?: string | null;
   };
   /**
-   * Bot koruması (giriş/kayıt). Site Key publictir; Secret Key gizli.
+   * Bot koruması (giriş/kayıt). Site Key publictir; Secret Key gizli. (yakında)
    */
   recaptcha?: {
     enabled?: boolean | null;
@@ -1738,7 +1891,7 @@ export interface MemorySetting {
    */
   crossConversation?: boolean | null;
   /**
-   * Eski konuşma/hafıza kaç gün sonra silinsin. Örn. 90. 0 = sınırsız. (Otomatik temizleme ileride eklenecek.)
+   * Bilgi amaçlı saklama süresi (gün). Örn. 90. 0 = sınırsız. Eski veri temizliği şimdilik admin panelinden manuel yapılır.
    */
   retentionDays?: number | null;
   /**

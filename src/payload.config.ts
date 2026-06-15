@@ -75,6 +75,9 @@ export default buildConfig({
     globals,
     endpoints,
     editor: lexicalEditor(),
+    serverURL: process.env.SERVER_URL || undefined,
+    cors: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : undefined,
+    csrf: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : undefined,
     secret: process.env.PAYLOAD_SECRET || '',
     typescript: {
         outputFile: path.resolve(dirname, 'payload-types.ts'),

@@ -1,7 +1,12 @@
 import type { CollectionConfig } from 'payload'
 
-import { canReadSecure, canDelete } from '@/access'
 import { preventHardDelete } from '@/access/collection/preventHardDelete'
+import {
+    memberOwnedRead,
+    memberOwnedUpdate,
+    memberOwnedDelete,
+    notMemberField,
+} from '@/access/collection/memberOwned'
 
 export const Conversations: CollectionConfig = {
     slug: 'conversations',
@@ -11,9 +16,9 @@ export const Conversations: CollectionConfig = {
     },
     access: {
         create: () => false,
-        read: canReadSecure('conversations'),
-        update: () => false,
-        delete: canDelete('conversations'),
+        read: memberOwnedRead('conversations'),
+        update: memberOwnedUpdate,
+        delete: memberOwnedDelete('conversations'),
     },
     admin: {
         description: 'Üyelerin asistan sohbetleri. Salt okunur — sunucu tarafında oluşturulur; mesaj/token sayacı ve özet içerir.',
@@ -29,6 +34,7 @@ export const Conversations: CollectionConfig = {
             type: 'relationship',
             relationTo: 'members',
             index: true,
+            access: { update: notMemberField },
         },
         {
             name: 'folder',
@@ -45,15 +51,17 @@ export const Conversations: CollectionConfig = {
         },
         {
             name: 'summary',
-            label: 'Özet (K3b)',
+            label: 'Özet',
             type: 'textarea',
-            admin: { description: 'Konuşma özeti — her tur sonunda güncellenir (Faz 5)' },
+            access: { update: notMemberField },
+            admin: { description: 'Konuşma özeti — her tur sonunda güncellenir.' },
         },
         {
             name: 'status',
             label: 'Durum',
             type: 'select',
             defaultValue: 'active',
+            access: { update: notMemberField },
             options: [
                 { label: 'Aktif', value: 'active' },
                 { label: 'Arşiv', value: 'archived' },
@@ -65,6 +73,7 @@ export const Conversations: CollectionConfig = {
             label: 'Mesaj Sayısı',
             type: 'number',
             defaultValue: 0,
+            access: { update: notMemberField },
             admin: { readOnly: true, position: 'sidebar' },
         },
         {
@@ -72,6 +81,7 @@ export const Conversations: CollectionConfig = {
             label: 'Toplam Token',
             type: 'number',
             defaultValue: 0,
+            access: { update: notMemberField },
             admin: { readOnly: true, position: 'sidebar' },
         },
         {
@@ -79,6 +89,7 @@ export const Conversations: CollectionConfig = {
             label: 'Son Mesaj',
             type: 'date',
             index: true,
+            access: { update: notMemberField },
             admin: { readOnly: true, position: 'sidebar' },
         },
     ],
