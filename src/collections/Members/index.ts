@@ -189,8 +189,22 @@ export const Members: CollectionConfig = {
                     ],
                 },
                 {
+                    label: 'Bağlı Hesaplar',
+                    description: 'Üyenin giriş yöntemleri (e-posta/şifre dışındaki bağlı sağlayıcılar — Google, Apple). Salt görüntüleme; OAuth akışı yazar.',
+                    fields: [
+                        {
+                            name: 'accounts',
+                            label: 'Bağlı Hesaplar',
+                            type: 'join',
+                            collection: 'member-accounts',
+                            on: 'member',
+                            admin: { defaultColumns: ['provider', 'providerAccountId', 'createdAt'] },
+                        },
+                    ],
+                },
+                {
                     label: 'Asistan Verileri',
-                    description: 'Bu üyeye ait ilişkili kayıtlar (salt görüntüleme). Mesajlar ilgili konuşmanın içinde görünür.',
+                    description: 'Bu üyeye ait sohbet kayıtları (salt görüntüleme). Mesajlar ilgili konuşmanın içinde görünür.',
                     fields: [
                         {
                             name: 'conversations',
@@ -200,14 +214,6 @@ export const Members: CollectionConfig = {
                             on: 'member',
                             defaultSort: '-lastMessageAt',
                             admin: { defaultColumns: ['title', 'status', 'messageCount', 'lastMessageAt'] },
-                        },
-                        {
-                            name: 'accounts',
-                            label: 'Bağlı Hesaplar',
-                            type: 'join',
-                            collection: 'member-accounts',
-                            on: 'member',
-                            admin: { defaultColumns: ['provider', 'providerAccountId', 'createdAt'] },
                         },
                         {
                             name: 'memory',
