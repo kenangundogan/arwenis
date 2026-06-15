@@ -6,6 +6,7 @@ import { Media } from './Media'
 import { Roles } from './Roles'
 import { Users } from './Users'
 import { Members } from './Members'
+import { MemberAccounts } from './MemberAccounts'
 import { Conversations } from './Conversations'
 import { Messages } from './Messages'
 import { Memory } from './Memory'
@@ -21,6 +22,7 @@ export const contentCollections = [
     Genders,
     Roles,
     Members,
+    MemberAccounts,
     Conversations,
     Messages,
     Memory,

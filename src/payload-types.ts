@@ -29,6 +29,7 @@ export interface Config {
     genders: Gender;
     roles: Role;
     members: Member;
+    'member-accounts': MemberAccount;
     conversations: Conversation;
     messages: Message;
     memory: Memory;
@@ -51,6 +52,7 @@ export interface Config {
     genders: GendersSelect<false> | GendersSelect<true>;
     roles: RolesSelect<false> | RolesSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
+    'member-accounts': MemberAccountsSelect<false> | MemberAccountsSelect<true>;
     conversations: ConversationsSelect<false> | ConversationsSelect<true>;
     messages: MessagesSelect<false> | MessagesSelect<true>;
     memory: MemorySelect<false> | MemorySelect<true>;
@@ -453,22 +455,66 @@ export interface Day {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Asistan son kullanıcıları (üyeler). Admin kullanıcılarından tamamen ayrı; kendi giriş sistemiyle oluşturulur.
+ * Asistan son kullanıcıları (üyeler). Admin kullanıcılarından tamamen ayrı; kendi giriş sistemiyle kayıt olur. Bağlı giriş yöntemleri "Üye Hesapları"nda tutulur.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "members".
  */
 export interface Member {
   id: string;
-  authProvider: 'email' | 'oauth';
   /**
-   * OAuth sağlayıcı kimliği (sub)
+   * Engelli üye giriş yapamaz (yalnız yönetici değiştirir).
    */
-  externalId?: string | null;
-  displayName?: string | null;
   status: 'active' | 'blocked';
+  /**
+   * Üyenin tercih ettiği dil (örn. tr).
+   */
   locale?: string | null;
   lastSeenAt?: string | null;
+  /**
+   * Üyenin adı.
+   */
+  firstName?: string | null;
+  /**
+   * Üyenin soyadı.
+   */
+  lastName?: string | null;
+  /**
+   * Üyenin doğum tarihi (opsiyonel).
+   */
+  birthDate?: string | null;
+  /**
+   * Üyenin cinsiyeti (opsiyonel).
+   */
+  gender?: (string | null) | Gender;
+  /**
+   * Üyenin ülkesi.
+   */
+  country?: (string | null) | Country;
+  /**
+   * Üyenin şehri.
+   */
+  city?: (string | null) | City;
+  /**
+   * Üyenin ilçesi.
+   */
+  district?: string | null;
+  /**
+   * Üyenin açık adresi.
+   */
+  address?: string | null;
+  /**
+   * Üyenin cep telefonu.
+   */
+  gsm?: string | null;
+  /**
+   * Üyenin sabit telefonu.
+   */
+  landline?: string | null;
+  /**
+   * Üyenin profil görseli (opsiyonel).
+   */
+  avatar?: (string | null) | Media;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -488,6 +534,23 @@ export interface Member {
     | null;
   password?: string | null;
   collection: 'members';
+}
+/**
+ * Bir üyenin bağlı giriş yöntemleri (Google, Apple, ...). Üye birden çok yöntemle giriş yapabilir. Salt okunur — OAuth akışı sunucu tarafında yazar; üye kendi bağlı hesabını kaldırabilir.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "member-accounts".
+ */
+export interface MemberAccount {
+  id: string;
+  member: string | Member;
+  provider: 'google' | 'apple';
+  /**
+   * Sağlayıcının verdiği benzersiz kullanıcı kimliği (OAuth "sub").
+   */
+  providerAccountId: string;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Üyelerin asistan sohbetleri. Salt okunur — sunucu tarafında oluşturulur; mesaj/token sayacı ve özet içerir.
@@ -630,6 +693,10 @@ export interface Permission {
     actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
   };
   members: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  'member-accounts': {
     scope: 'none' | 'own' | 'all';
     actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
   };
@@ -877,6 +944,10 @@ export interface PayloadLockedDocument {
         value: string | Member;
       } | null)
     | ({
+        relationTo: 'member-accounts';
+        value: string | MemberAccount;
+      } | null)
+    | ({
         relationTo: 'conversations';
         value: string | Conversation;
       } | null)
@@ -1101,12 +1172,20 @@ export interface RolesSelect<T extends boolean = true> {
  * via the `definition` "members_select".
  */
 export interface MembersSelect<T extends boolean = true> {
-  authProvider?: T;
-  externalId?: T;
-  displayName?: T;
   status?: T;
   locale?: T;
   lastSeenAt?: T;
+  firstName?: T;
+  lastName?: T;
+  birthDate?: T;
+  gender?: T;
+  country?: T;
+  city?: T;
+  district?: T;
+  address?: T;
+  gsm?: T;
+  landline?: T;
+  avatar?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
@@ -1124,6 +1203,17 @@ export interface MembersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "member-accounts_select".
+ */
+export interface MemberAccountsSelect<T extends boolean = true> {
+  member?: T;
+  provider?: T;
+  providerAccountId?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1239,6 +1329,12 @@ export interface PermissionsSelect<T extends boolean = true> {
         actions?: T;
       };
   members?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  'member-accounts'?:
     | T
     | {
         scope?: T;

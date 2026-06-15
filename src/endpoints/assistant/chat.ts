@@ -108,7 +108,8 @@ export const chatEndpoint: Endpoint = {
         let userContext = ''
         if (conv && member) {
             const facts = crossConv ? (await loadMemories(req.payload, String(member.id))).map((m) => m.text) : []
-            userContext = buildUserContext({ name: member.displayName, facts, priorSummary: conv.summary })
+            const memberName = [member.firstName, member.lastName].filter(Boolean).join(' ') || member.email
+            userContext = buildUserContext({ name: memberName, facts, priorSummary: conv.summary })
         }
 
         const encoder = new TextEncoder()
