@@ -44,8 +44,8 @@ export interface Config {
   };
   collectionsJoins: {
     members: {
-      conversations: 'conversations';
       accounts: 'member-accounts';
+      conversations: 'conversations';
       memory: 'memory';
       folders: 'folders';
     };
@@ -526,13 +526,13 @@ export interface Member {
    * Üyenin profil görseli (opsiyonel).
    */
   avatar?: (string | null) | Media;
-  conversations?: {
-    docs?: (string | Conversation)[];
+  accounts?: {
+    docs?: (string | MemberAccount)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
-  accounts?: {
-    docs?: (string | MemberAccount)[];
+  conversations?: {
+    docs?: (string | Conversation)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
@@ -564,6 +564,23 @@ export interface Member {
       }[]
     | null;
   collection: 'members';
+}
+/**
+ * Bir üyenin bağlı giriş yöntemleri (Google, Apple, ...). Üye birden çok yöntemle giriş yapabilir. Salt okunur — OAuth akışı sunucu tarafında yazar; üye kendi bağlı hesabını kaldırabilir.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "member-accounts".
+ */
+export interface MemberAccount {
+  id: string;
+  member: string | Member;
+  provider: 'google' | 'apple';
+  /**
+   * Sağlayıcının verdiği benzersiz kullanıcı kimliği (OAuth "sub").
+   */
+  providerAccountId: string;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Üyelerin asistan sohbetleri. Salt okunur — sunucu tarafında oluşturulur; mesaj/token sayacı ve özet içerir.
@@ -636,23 +653,6 @@ export interface Message {
   tokensIn?: number | null;
   tokensOut?: number | null;
   feedback?: ('up' | 'down') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Bir üyenin bağlı giriş yöntemleri (Google, Apple, ...). Üye birden çok yöntemle giriş yapabilir. Salt okunur — OAuth akışı sunucu tarafında yazar; üye kendi bağlı hesabını kaldırabilir.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "member-accounts".
- */
-export interface MemberAccount {
-  id: string;
-  member: string | Member;
-  provider: 'google' | 'apple';
-  /**
-   * Sağlayıcının verdiği benzersiz kullanıcı kimliği (OAuth "sub").
-   */
-  providerAccountId: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -1225,8 +1225,8 @@ export interface MembersSelect<T extends boolean = true> {
   gsm?: T;
   landline?: T;
   avatar?: T;
-  conversations?: T;
   accounts?: T;
+  conversations?: T;
   memory?: T;
   folders?: T;
   updatedAt?: T;
