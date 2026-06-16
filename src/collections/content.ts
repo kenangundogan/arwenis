@@ -12,6 +12,8 @@ import { Messages } from './Messages'
 import { Memory } from './Memory'
 import { Folders } from './Folders'
 import { Usage } from './Usage'
+import { LoginSessions } from './LoginSessions'
+import { MemberLoginSessions } from './LoginSessions/member'
 
 export const contentCollections = [
     Users,
@@ -28,4 +30,6 @@ export const contentCollections = [
     Memory,
     Folders,
     Usage,
+    LoginSessions,
+    MemberLoginSessions,
 ]

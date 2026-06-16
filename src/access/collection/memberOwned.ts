@@ -23,5 +23,8 @@ export const memberOwnedUpdate: Access = ({ req }) =>
 export const memberSelfUpdate = (resource: string): Access => async (args) =>
     isMember(args.req.user) ? { id: { equals: args.req.user!.id } } : canUpdate(resource)(args)
 
+export const memberSelfRead = (resource: string): Access => async (args) =>
+    isMember(args.req.user) ? { id: { equals: args.req.user!.id } } : canReadSecure(resource)(args)
+
 // Field-level: block members from writing server-managed fields.
 export const notMemberField: FieldAccess = ({ req }) => !isMember(req.user)

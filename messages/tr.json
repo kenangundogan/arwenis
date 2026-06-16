@@ -1,0 +1,104 @@
+{
+    "appFallbackName": "Arwenis",
+    "common": {
+        "email": "E-posta",
+        "password": "Şifre",
+        "firstName": "Ad",
+        "lastName": "Soyad",
+        "submit": "Gönder",
+        "loading": "Yükleniyor…",
+        "cancel": "İptal",
+        "somethingWentWrong": "Bir hata oluştu. Lütfen tekrar deneyin."
+    },
+    "auth": {
+        "loginTitle": "Giriş yap",
+        "loginSubtitle": "Asistana erişmek için giriş yapın.",
+        "loginCta": "Giriş yap",
+        "registerTitle": "Hesap oluştur",
+        "registerSubtitle": "Birkaç saniyede üye olun.",
+        "registerCta": "Hesap oluştur",
+        "toLogin": "Zaten hesabın var mı? Giriş yap",
+        "toRegister": "Hesabın yok mu? Kayıt ol",
+        "emailPlaceholder": "ornek@eposta.com",
+        "passwordHint": "En az 8 karakter",
+        "loggedIn": "Giriş yapıldı.",
+        "registered": "Hesabın oluşturuldu.",
+        "logout": "Çıkış yap"
+    },
+    "chat": {
+        "emptyTitle": "Size nasıl yardımcı olabilirim?",
+        "newChat": "Yeni sohbet",
+        "placeholder": "Bir mesaj yazın…",
+        "rename": "Yeniden adlandır",
+        "delete": "Sil",
+        "deleteTitle": "Konuşmayı sil?",
+        "deleteDesc": "Bu konuşma ve tüm mesajları kalıcı olarak silinecek.",
+        "moveToFolder": "Klasöre taşı",
+        "removeFromFolder": "Klasörden çıkar",
+        "newFolder": "Yeni klasör",
+        "folders": "Klasörler",
+        "folderNamePlaceholder": "Klasör adı",
+        "deleteFolder": "Klasörü sil",
+        "deleteFolderDesc": "Klasör silinir; içindeki sohbetler korunur (klasörden çıkarılır).",
+        "loose": "Sohbetler",
+        "search": "Sohbetlerde ara…",
+        "searchResults": "Arama sonuçları",
+        "noResults": "Sonuç bulunamadı",
+        "noResultsDesc": "Farklı bir arama deneyin.",
+        "noConversations": "Henüz sohbet yok",
+        "noConversationsDesc": "İlk sohbetini başlat."
+    },
+    "account": {
+        "profile": "Profil",
+        "memory": "Hafıza"
+    },
+    "settings": {
+        "title": "Ayarlar",
+        "general": "Genel",
+        "profile": "Profil",
+        "memory": "Hafıza",
+        "usage": "Kullanım",
+        "account": "Hesap",
+        "soon": "Yakında",
+        "soonDesc": "Bu bölüm yakında kullanıma açılacak."
+    },
+    "sessions": {
+        "title": "Son Oturumlar",
+        "desc": "Hesabına yapılan son girişler (cihaz ve konum bilgisi).",
+        "empty": "Kayıt yok",
+        "emptyDesc": "Henüz bir giriş kaydı bulunmuyor.",
+        "unknownDevice": "Bilinmeyen cihaz",
+        "justNow": "az önce",
+        "minutesAgo": "{count} dk önce",
+        "hoursAgo": "{count} sa önce",
+        "daysAgo": "{count} gün önce"
+    },
+    "device": {
+        "desktop": "Masaüstü",
+        "mobile": "Mobil",
+        "tablet": "Tablet",
+        "bot": "Bot",
+        "unknown": "Bilinmiyor"
+    },
+    "profile": {
+        "title": "Profil",
+        "subtitle": "Kişisel bilgilerini düzenle. E-posta değiştirilemez.",
+        "gsm": "Cep Telefonu",
+        "locale": "Dil",
+        "save": "Kaydet",
+        "saved": "Profil güncellendi."
+    },
+    "memory": {
+        "title": "Hafıza",
+        "subtitle": "Asistanın senin hakkında hatırladıkları. İstediğini silebilirsin.",
+        "empty": "Henüz bir şey hatırlanmıyor.",
+        "emptyDesc": "Sohbet ettikçe asistan senin hakkında kalıcı bilgileri burada toplar.",
+        "clearAll": "Tümünü temizle",
+        "cleared": "Hafıza temizlendi."
+    },
+    "notFound": {
+        "title": "Sayfa bulunamadı",
+        "desc": "Aradığınız sohbet silinmiş veya hiç var olmamış olabilir.",
+        "back": "Sohbete dön"
+    }
+}

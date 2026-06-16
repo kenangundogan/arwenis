@@ -21,7 +21,7 @@ export const DEFAULT_NO_CONTEXT_REPLY =
 
 export const DEFAULT_SUMMARY_PROMPT = `Aşağıda bir konuşma ve (varsa) önceki özet bulunuyor. Konuşmayı önceki özetle birleştirerek en fazla 3-4 cümlelik güncel ve öz bir özet üret. Yalnızca özet metnini döndür; başka açıklama ekleme.`
 
-export const DEFAULT_MEMORY_EXTRACT_PROMPT = `Aşağıdaki konuşmadan, kullanıcı hakkında gelecekte işine yarayacak KALICI gerçekleri çıkar (örn. adı, tercihleri, sürekli durumları). Geçici, önemsiz veya tek seferlik detayları atla. Her gerçeği kısa bir cümle olarak yaz ve sonucu yalnızca JSON dizisi biçiminde döndür: ["...", "..."]. Yeni kalıcı gerçek yoksa [] döndür.`
+export const DEFAULT_MEMORY_EXTRACT_PROMPT = `Ayrıca aşağıdaki konuşmadan, kullanıcı hakkında gelecekte işine yarayacak KALICI gerçekleri çıkar (örn. adı, mesleği, yaşadığı yer, tercihleri, sürekli durumları). Geçici, önemsiz veya tek seferlik detayları atla. Her gerçeği kısa, bağımsız bir cümle olarak yukarıdaki çıktının "newFacts" dizisine ekle. Yeni kalıcı gerçek yoksa "newFacts" boş dizi olsun.`
 
 export const DEFAULT_TITLE_PROMPT = `Aşağıdaki ilk kullanıcı mesajına göre konuşma için en fazla 5 kelimelik kısa ve açıklayıcı bir başlık üret. Tırnak işareti veya noktalama ekleme; yalnızca başlık metnini döndür.`
 

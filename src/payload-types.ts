@@ -35,6 +35,8 @@ export interface Config {
     memory: Memory;
     folders: Folder;
     usage: Usage;
+    'login-sessions': LoginSession;
+    'member-login-sessions': MemberLoginSession;
     permissions: Permission;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
@@ -68,6 +70,8 @@ export interface Config {
     memory: MemorySelect<false> | MemorySelect<true>;
     folders: FoldersSelect<false> | FoldersSelect<true>;
     usage: UsageSelect<false> | UsageSelect<true>;
+    'login-sessions': LoginSessionsSelect<false> | LoginSessionsSelect<true>;
+    'member-login-sessions': MemberLoginSessionsSelect<false> | MemberLoginSessionsSelect<true>;
     permissions: PermissionsSelect<false> | PermissionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
@@ -108,6 +112,7 @@ export interface Config {
     'banner-widget': BannerWidgetWidget;
     collections: CollectionsWidget;
   };
+  strictDraftTypes: true;
   user: User | Member;
   jobs: {
     tasks: {
@@ -417,6 +422,7 @@ export interface Media {
   alt: string;
   updatedAt: string;
   createdAt: string;
+  deletedAt?: string | null;
   url?: string | null;
   thumbnailURL?: string | null;
   filename?: string | null;
@@ -426,6 +432,24 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    small?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
 }
 /**
  * Haftanın günleri / gün tanımları (sıralı referans verisi).
@@ -687,6 +711,54 @@ export interface Usage {
   createdAt: string;
 }
 /**
+ * Yönetim paneli (admin) kullanıcılarının her başarılı girişinde kaydedilen oturum bilgisi. Salt okunur, yalnız yöneticiler görür.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "login-sessions".
+ */
+export interface LoginSession {
+  id: string;
+  /**
+   * Giriş yapan admin kullanıcısı.
+   */
+  user: string | User;
+  status: 'success' | 'failed';
+  ipAddress?: string | null;
+  deviceType?: ('desktop' | 'mobile' | 'tablet' | 'bot' | 'unknown') | null;
+  browser?: string | null;
+  os?: string | null;
+  /**
+   * İstemcinin gönderdiği ham User-Agent başlığı.
+   */
+  userAgent?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Üyelerin her başarılı girişinde kaydedilen oturum bilgisi. Salt okunur; üye yalnız kendi kayıtlarını görür, yönetici tümünü görür.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "member-login-sessions".
+ */
+export interface MemberLoginSession {
+  id: string;
+  /**
+   * Giriş yapan üye.
+   */
+  member: string | Member;
+  status: 'success' | 'failed';
+  ipAddress?: string | null;
+  deviceType?: ('desktop' | 'mobile' | 'tablet' | 'bot' | 'unknown') | null;
+  browser?: string | null;
+  os?: string | null;
+  /**
+   * İstemcinin gönderdiği ham User-Agent başlığı.
+   */
+  userAgent?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Kullanıcı yetkilerini yönetin - Her kullanıcı için tek kayıt
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -755,6 +827,14 @@ export interface Permission {
     actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
   };
   usage: {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  'login-sessions': {
+    scope: 'none' | 'own' | 'all';
+    actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
+  };
+  'member-login-sessions': {
     scope: 'none' | 'own' | 'all';
     actions?: ('create' | 'read' | 'update' | 'delete' | 'publish' | 'hardDelete' | 'readVersions')[] | null;
   };
@@ -1006,6 +1086,14 @@ export interface PayloadLockedDocument {
         value: string | Usage;
       } | null)
     | ({
+        relationTo: 'login-sessions';
+        value: string | LoginSession;
+      } | null)
+    | ({
+        relationTo: 'member-login-sessions';
+        value: string | MemberLoginSession;
+      } | null)
+    | ({
         relationTo: 'permissions';
         value: string | Permission;
       } | null);
@@ -1114,6 +1202,7 @@ export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   updatedAt?: T;
   createdAt?: T;
+  deletedAt?: T;
   url?: T;
   thumbnailURL?: T;
   filename?: T;
@@ -1123,6 +1212,30 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        small?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1325,6 +1438,36 @@ export interface UsageSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "login-sessions_select".
+ */
+export interface LoginSessionsSelect<T extends boolean = true> {
+  user?: T;
+  status?: T;
+  ipAddress?: T;
+  deviceType?: T;
+  browser?: T;
+  os?: T;
+  userAgent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "member-login-sessions_select".
+ */
+export interface MemberLoginSessionsSelect<T extends boolean = true> {
+  member?: T;
+  status?: T;
+  ipAddress?: T;
+  deviceType?: T;
+  browser?: T;
+  os?: T;
+  userAgent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "permissions_select".
  */
 export interface PermissionsSelect<T extends boolean = true> {
@@ -1409,6 +1552,18 @@ export interface PermissionsSelect<T extends boolean = true> {
         actions?: T;
       };
   usage?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  'login-sessions'?:
+    | T
+    | {
+        scope?: T;
+        actions?: T;
+      };
+  'member-login-sessions'?:
     | T
     | {
         scope?: T;
