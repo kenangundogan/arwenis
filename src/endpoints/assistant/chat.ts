@@ -188,7 +188,7 @@ export const chatEndpoint: Endpoint = {
                     const query = await contextualizeQuery(settings, history, message)
                     citations = await retrieve(settings, query)
 
-                    if (citations.length === 0) {
+                    if (citations.length === 0 && !userContext) {
 
                         full = settings.prompts?.noContextReply || 'Bu konuda elimde bilgi yok.'
                         send({ type: 'text', text: full })
