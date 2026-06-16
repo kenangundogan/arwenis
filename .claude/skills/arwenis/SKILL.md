@@ -83,3 +83,4 @@ See [ARCHITECTURE.md](reference/ARCHITECTURE.md) for the full request lifecycle.
 - **[AUTH-AND-ACCESS.md](reference/AUTH-AND-ACCESS.md)** — the admin/member split, RBAC, `memberOwned`/field-level access, member-accounts (multi-provider), registration, OAuth plan.
 - **[COLLECTIONS-AND-GLOBALS.md](reference/COLLECTIONS-AND-GLOBALS.md)** — every assistant collection & global, their fields, access, and the `loadConfig` aggregator.
 - **[CONVENTIONS.md](reference/CONVENTIONS.md)** — decisions, native-first policy, Turkish UI, validators, no-comments rule, gotchas, env vars, CI.
+- **[FRONTEND.md](reference/FRONTEND.md)** — chat UI plan: stack (eglador-ui-react [own] or shadcn/ui + Tailwind v4 + lucide + marked/DOMPurify), design style, structure, data flow, theming, build order.

@@ -81,10 +81,16 @@ export default buildConfig({
     secret: process.env.PAYLOAD_SECRET || '',
     typescript: {
         outputFile: path.resolve(dirname, 'payload-types.ts'),
+        strictDraftTypes: true,
     },
     db: mongooseAdapter({
         url: process.env.DATABASE_URL || '',
     }),
     sharp,
+    upload: {
+        limits: {
+            fileSize: 10485760,
+        },
+    },
     plugins: [],
 })

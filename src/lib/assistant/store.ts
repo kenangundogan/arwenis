@@ -74,7 +74,7 @@ export const persistTurn = async (
         tokensIn?: number
         tokensOut?: number
     },
-): Promise<void> => {
+): Promise<string | undefined> => {
     const { conv } = args
     const member = relId(conv.member)
 
@@ -83,7 +83,7 @@ export const persistTurn = async (
         data: { conversation: conv.id, member, role: 'user', content: args.userText },
         overrideAccess: true,
     })
-    await payload.create({
+    const assistant = await payload.create({
         collection: 'messages',
         data: {
             conversation: conv.id,
@@ -107,6 +107,8 @@ export const persistTurn = async (
         },
         overrideAccess: true,
     })
+
+    return String(assistant.id)
 }
 
 const MEMORY_CAP = 100

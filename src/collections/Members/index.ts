@@ -1,9 +1,10 @@
 import type { CollectionConfig } from 'payload'
 import { APIError } from 'payload'
 
-import { canReadSecure, canDelete, adminOnlyField } from '@/access'
-import { memberSelfUpdate, notMemberField } from '@/access/collection/memberOwned'
+import { canDelete, adminOnlyField } from '@/access'
+import { memberSelfRead, memberSelfUpdate, notMemberField } from '@/access/collection/memberOwned'
 import { preventHardDelete } from '@/access/collection/preventHardDelete'
+import { recordMemberLogin } from '@/collections/LoginSessions/recordLogin'
 import {
     composeValidators,
     onlyText,
@@ -27,7 +28,7 @@ export const Members: CollectionConfig = {
     },
     access: {
         create: () => true,
-        read: canReadSecure('members'),
+        read: memberSelfRead('members'),
         update: memberSelfUpdate('members'),
         delete: canDelete('members'),
     },
@@ -246,6 +247,7 @@ export const Members: CollectionConfig = {
                 }
             },
         ],
+        afterLogin: [recordMemberLogin],
         beforeDelete: [preventHardDelete],
     },
 }

@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { auditFields } from '@/fields/auditFields'
 import { preventHardDelete } from '@/access/collection/preventHardDelete'
+import { recordAdminLogin } from '@/collections/LoginSessions/recordLogin'
 import { ensureFirstUserIsAdmin } from './hooks/ensureFirstUserIsAdmin'
 import {
     canCreate,
@@ -37,6 +38,7 @@ export const Users: CollectionConfig = {
         },
     },
     hooks: {
+        afterLogin: [recordAdminLogin],
         beforeDelete: [preventHardDelete],
         beforeValidate: [ensureFirstUserIsAdmin],
     },

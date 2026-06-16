@@ -4,6 +4,7 @@ import { auditFields } from '@/fields/auditFields'
 import { canReadGlobal, canUpdateGlobal, canReadVersionsGlobal } from '@/access'
 import { composeValidators, required, maxLength } from '@/utilities/validators'
 import { DEFAULT_PERSONA } from '@/lib/assistant/promptDefaults'
+import { revalidatePersona } from './hooks/revalidatePersona'
 
 export const Persona: GlobalConfig = {
     slug: 'persona',
@@ -53,5 +54,8 @@ export const Persona: GlobalConfig = {
         },
         ...auditFields,
     ],
+    hooks: {
+        afterChange: [revalidatePersona],
+    },
     versions: { drafts: { schedulePublish: true } },
 }

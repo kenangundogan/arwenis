@@ -441,6 +441,7 @@ import type { Post, User } from '@/payload-types'
 
 ## Resources
 
+- **In-repo official docs (authoritative — consult first):** `docs/payloadcms/` — full MDX docs matching our installed Payload **3.85.1**; the source of truth for exact Payload behavior. Prefer over training assumptions.
 - llms-full.txt: <https://payloadcms.com/llms-full.txt>
 - Docs: <https://payloadcms.com/docs>
 - GitHub: <https://github.com/payloadcms/payload>

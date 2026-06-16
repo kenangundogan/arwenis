@@ -120,13 +120,14 @@ export const chatEndpoint: Endpoint = {
         let citations: Citation[] = []
         let usedCitations: UsedCitation[] = []
         let finalized = false
+        let assistantMessageId: string | undefined
 
         const finalize = async () => {
             if (finalized) return
             finalized = true
             try {
                 if (persistEnabled && conv) {
-                    await persistTurn(req.payload, {
+                    assistantMessageId = await persistTurn(req.payload, {
                         conv,
                         userText: message,
                         assistantText: full,
@@ -234,7 +235,7 @@ export const chatEndpoint: Endpoint = {
                     }
 
                     await finalize()
-                    send({ type: 'done', usage })
+                    send({ type: 'done', usage, messageId: assistantMessageId })
                     await runMemory()
                     controller.close()
                 } catch (err) {
