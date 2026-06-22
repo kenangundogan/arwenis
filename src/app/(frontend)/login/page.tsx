@@ -8,10 +8,12 @@ import { toast } from 'eglador-ui-react-toast'
 import { login } from '../_lib/api'
 import { useTranslations } from 'next-intl'
 import GoogleSignIn from '../_components/GoogleSignIn'
+import { useRecaptcha } from '../_lib/useRecaptcha'
 
 export default function LoginPage() {
     const t = useTranslations()
     const router = useRouter()
+    const { execute } = useRecaptcha()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -26,7 +28,8 @@ export default function LoginPage() {
         e.preventDefault()
         setLoading(true)
         try {
-            await login(email, password)
+            const token = await execute('login')
+            await login(email, password, token)
             toast.success(t('auth.loggedIn'))
             router.replace('/chat')
             router.refresh()

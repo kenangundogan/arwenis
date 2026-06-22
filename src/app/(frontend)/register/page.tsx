@@ -8,9 +8,11 @@ import { MailCheck } from 'lucide-react'
 import { register } from '../_lib/api'
 import { useTranslations } from 'next-intl'
 import GoogleSignIn from '../_components/GoogleSignIn'
+import { useRecaptcha } from '../_lib/useRecaptcha'
 
 export default function RegisterPage() {
     const t = useTranslations()
+    const { execute } = useRecaptcha()
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [email, setEmail] = useState('')
@@ -27,7 +29,8 @@ export default function RegisterPage() {
         }
         setLoading(true)
         try {
-            await register({ email, password, firstName: firstName || undefined, lastName: lastName || undefined })
+            const token = await execute('register')
+            await register({ email, password, firstName: firstName || undefined, lastName: lastName || undefined }, token)
             setDone(true)
         } catch (err) {
             toast.error((err as Error).message || t('common.somethingWentWrong'))

@@ -7,9 +7,11 @@ import { toast } from 'eglador-ui-react-toast'
 import { MailCheck } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { forgotPassword } from '../_lib/api'
+import { useRecaptcha } from '../_lib/useRecaptcha'
 
 export default function ForgotPasswordPage() {
     const t = useTranslations()
+    const { execute } = useRecaptcha()
     const [email, setEmail] = useState('')
     const [loading, setLoading] = useState(false)
     const [sent, setSent] = useState(false)
@@ -18,7 +20,8 @@ export default function ForgotPasswordPage() {
         e.preventDefault()
         setLoading(true)
         try {
-            await forgotPassword(email)
+            const token = await execute('forgot_password')
+            await forgotPassword(email, token)
             setSent(true)
         } catch (err) {
             toast.error((err as Error).message || t('common.somethingWentWrong'))

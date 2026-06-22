@@ -9,9 +9,14 @@ export const authProvidersEndpoint: Endpoint = {
             draft: true,
             overrideAccess: true,
         })) as any
+        const recaptcha = integrations?.recaptcha ?? {}
         return Response.json({
             google: !!integrations?.google?.enabled,
             apple: !!integrations?.apple?.enabled,
+            recaptcha: {
+                enabled: !!recaptcha.enabled && !!recaptcha.siteKey,
+                siteKey: recaptcha.enabled ? recaptcha.siteKey || '' : '',
+            },
         })
     },
 }
