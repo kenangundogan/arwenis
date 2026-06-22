@@ -51,6 +51,32 @@ export async function logout(): Promise<void> {
     await fetch('/api/members/logout', { method: 'POST', headers: JSON_HEADERS }).catch(() => {})
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+    const res = await fetch('/api/members/forgot-password', {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ email }),
+    })
+    if (!res.ok) throw await parseError(res)
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+    const res = await fetch('/api/members/reset-password', {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ token, password }),
+    })
+    if (!res.ok) throw await parseError(res)
+}
+
+export async function verifyEmail(token: string): Promise<void> {
+    const res = await fetch(`/api/members/verify/${encodeURIComponent(token)}`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+    })
+    if (!res.ok) throw await parseError(res)
+}
+
 export async function listConversations(): Promise<ConversationLite[]> {
     const res = await fetch('/api/conversations?sort=-lastMessageAt&limit=100&depth=0')
     if (!res.ok) return []

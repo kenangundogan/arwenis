@@ -37,7 +37,7 @@ export default function LoginPage() {
                     <CardDescription>{t('auth.loginSubtitle')}</CardDescription>
                 </CardHeader>
                 <form onSubmit={onSubmit}>
-                    <CardContent className="flex flex-col gap-4">
+                    <CardContent className="flex flex-col gap-4 mb-4">
                         <div className="flex flex-col gap-1.5">
                             <Label htmlFor="email">{t('common.email')}</Label>
                             <Input id="email" type="email" required autoComplete="email" placeholder={t('auth.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -51,9 +51,14 @@ export default function LoginPage() {
                         <Button type="submit" variant="solid" loading={loading} className="w-full">
                             {t('auth.loginCta')}
                         </Button>
-                        <Link href="/register" className="text-center text-sm text-zinc-500 hover:text-zinc-800">
-                            {t('auth.toRegister')}
-                        </Link>
+                        <div className="flex flex-col items-center gap-1.5">
+                            <Link href="/forgot-password" className="text-sm text-zinc-500 hover:text-zinc-800">
+                                {t('auth.forgotLink')}
+                            </Link>
+                            <Link href="/register" className="text-sm text-zinc-500 hover:text-zinc-800">
+                                {t('auth.toRegister')}
+                            </Link>
+                        </div>
                     </CardFooter>
                 </form>
             </Card>

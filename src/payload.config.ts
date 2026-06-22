@@ -1,4 +1,5 @@
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
@@ -75,6 +76,20 @@ export default buildConfig({
     collections,
     globals,
     endpoints,
+    email: nodemailerAdapter({
+        defaultFromAddress: process.env.SMTP_FROM_ADDRESS || 'noreply@arwenis.local',
+        defaultFromName: process.env.SMTP_FROM_NAME || 'Arwenis',
+        ...(process.env.SMTP_HOST
+            ? {
+                  transportOptions: {
+                      host: process.env.SMTP_HOST,
+                      port: Number(process.env.SMTP_PORT) || 587,
+                      secure: Number(process.env.SMTP_PORT) === 465,
+                      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+                  },
+              }
+            : {}),
+    }),
     editor: lexicalEditor(),
     serverURL: process.env.SERVER_URL || undefined,
     cors: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : undefined,
