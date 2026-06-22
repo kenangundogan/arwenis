@@ -16,11 +16,9 @@ import {
     persistTurn,
     generateTitle,
     loadMemories,
-    saveMemories,
     buildUserContext,
     countConversations,
 } from '@/lib/assistant/store'
-import { summarizeAndExtract } from '@/lib/assistant/summarize'
 import { checkDailyCap, incrementUsage, estimateTokens } from '@/lib/assistant/usage'
 import { checkRateLimit, getClientIp } from '@/lib/assistant/rateLimit'
 
@@ -144,35 +142,6 @@ export const chatEndpoint: Endpoint = {
             await incrementUsage(req.payload, total > 0 ? total : estimateTokens(message) + estimateTokens(full))
         }
 
-        const runMemory = async () => {
-            if (!persistEnabled || !conv) return
-            try {
-                const turns: ChatMessage[] = [
-                    ...history,
-                    { role: 'user', content: message },
-                    { role: 'assistant', content: full },
-                ]
-                const { summary, newFacts } = await summarizeAndExtract(settings, {
-                    priorSummary: conv.summary,
-                    turns,
-                    extractFacts: crossConv,
-                })
-                if (summary) {
-                    await req.payload.update({
-                        collection: 'conversations',
-                        id: conv.id,
-                        data: { summary },
-                        overrideAccess: true,
-                    })
-                }
-                if (crossConv && newFacts.length && member) {
-                    await saveMemories(req.payload, String(member.id), newFacts)
-                }
-            } catch (err) {
-                req.payload.logger.error({ err }, '[assistant] memory update failed')
-            }
-        }
-
         const stream = new ReadableStream<Uint8Array>({
             async start(controller) {
                 const send = (obj: unknown) => {
@@ -186,7 +155,12 @@ export const chatEndpoint: Endpoint = {
                     if (conv) send({ type: 'conversation', id: conv.id })
 
                     const plan = await planQuery(settings, history, message)
-                    citations = await retrieve(settings, plan)
+                    try {
+                        citations = await retrieve(settings, plan)
+                    } catch (err) {
+                        req.payload.logger.error({ err }, '[assistant] retrieval failed (degrade: bağlamsız devam)')
+                        citations = []
+                    }
 
                     if (citations.length === 0 && !userContext) {
 
@@ -236,7 +210,12 @@ export const chatEndpoint: Endpoint = {
 
                     await finalize()
                     send({ type: 'done', usage, messageId: assistantMessageId })
-                    await runMemory()
+                    if (persistEnabled && conv) {
+                        await req.payload.jobs.queue({
+                            task: 'summarizeTurn',
+                            input: { conversationId: String(conv.id) },
+                        })
+                    }
                     controller.close()
                 } catch (err) {
                     if (abort.signal.aborted) {

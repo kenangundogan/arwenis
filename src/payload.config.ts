@@ -7,6 +7,7 @@ import sharp from 'sharp'
 import { collections } from './collections'
 import { globals } from './globals'
 import { endpoints } from './endpoints'
+import { summarizeTurnTask } from './jobs/summarizeTurn'
 import { tr } from '@payloadcms/translations/languages/tr'
 
 const filename = fileURLToPath(import.meta.url)
@@ -91,6 +92,18 @@ export default buildConfig({
         limits: {
             fileSize: 10485760,
         },
+    },
+    jobs: {
+        access: {
+            run: ({ req }) => {
+                if (req.user) return true
+                const auth = req.headers.get('authorization')
+                return auth === `Bearer ${process.env.CRON_SECRET}`
+            },
+        },
+        tasks: [summarizeTurnTask],
+        autoRun: [{ cron: '*/10 * * * * *', limit: 10, queue: 'default' }],
+        shouldAutoRun: async () => true,
     },
     plugins: [],
 })
