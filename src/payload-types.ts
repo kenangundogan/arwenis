@@ -1930,6 +1930,10 @@ export interface Prompt {
    */
   contextualizePrompt?: string | null;
   /**
+   * Kullanıcı mesajını arama planına çevirir: konu sorgusu + faset filtreleri + "en güncel mi?". {{facets}} (Retrieval ▸ Fasetler) otomatik doldurulur. Faset filtreli/recency sorguları için gereklidir.
+   */
+  queryPlanPrompt?: string | null;
+  /**
    * Bu içeriği oluşturan kullanıcı
    */
   createdBy?: (string | null) | User;
@@ -2059,6 +2063,37 @@ export interface Retrieval {
    * Pasaj METNİNİN saklandığı alan adı. Örn. text / content / chunk.
    */
   textKey?: string | null;
+  /**
+   * "En güncel / en son" sıralaması için kullanılacak payload alanı (epoch ms / integer). Örn. publishedAtTs. Boşsa recency sıralaması devre dışı. (Qdrant'ta bu alanın integer index'i olmalı.)
+   */
+  recencyKey?: string | null;
+  /**
+   * Bilgi tabanının filtrelenebilir metadata alanları (domain-agnostik). Sorgu planlayıcı kullanıcı niyetini YALNIZCA buradaki fasetlere eşler. Örn. haber için key=category; e-ticaret için key=brand. Domain default'u YOKTUR; her kuruluma göre tanımlanır.
+   */
+  facets?:
+    | {
+        /**
+         * Vektör payload'ındaki alan adı. Örn. category.
+         */
+        key: string;
+        /**
+         * keyword: değere göre filtre (ör. category=spor). Şu an planlayıcı keyword fasetlerini filtreler.
+         */
+        type: 'keyword' | 'integer' | 'datetime';
+        label?: string | null;
+        /**
+         * Bu fasetin alabileceği değerler (kapalı küme). Boşsa planlayıcı serbest değer üretebilir. Örn. spor, magazin, ekonomi.
+         */
+        values?:
+          | {
+              value: string;
+              label?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Bu içeriği oluşturan kullanıcı
    */
@@ -2250,6 +2285,7 @@ export interface PromptsSelect<T extends boolean = true> {
   memoryExtractPrompt?: T;
   titlePrompt?: T;
   contextualizePrompt?: T;
+  queryPlanPrompt?: T;
   createdBy?: T;
   updatedBy?: T;
   _status?: T;
@@ -2305,6 +2341,22 @@ export interface RetrievalSelect<T extends boolean = true> {
   topK?: T;
   minScore?: T;
   textKey?: T;
+  recencyKey?: T;
+  facets?:
+    | T
+    | {
+        key?: T;
+        type?: T;
+        label?: T;
+        values?:
+          | T
+          | {
+              value?: T;
+              label?: T;
+              id?: T;
+            };
+        id?: T;
+      };
   createdBy?: T;
   updatedBy?: T;
   _status?: T;

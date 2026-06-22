@@ -25,6 +25,15 @@ export type AssistantConfig = {
         topK?: number | null
         minScore?: number | null
         textKey?: string | null
+        recencyKey?: string | null
+        facets?:
+            | ({
+                  key?: string | null
+                  type?: string | null
+                  label?: string | null
+                  values?: ({ value?: string | null } | string)[] | null
+              } | null)[]
+            | null
     } | null
     prompts?: {
         systemPrompt?: string | null
@@ -33,6 +42,7 @@ export type AssistantConfig = {
         memoryExtractPrompt?: string | null
         titlePrompt?: string | null
         contextualizePrompt?: string | null
+        queryPlanPrompt?: string | null
     } | null
     memory?: {
         persistConversations?: boolean | null

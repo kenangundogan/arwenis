@@ -75,6 +75,24 @@ export const resolveRetrieval = (settings: AssistantConfig): ResolvedRetrieval =
         topK: r.topK ?? 5,
         minScore: r.minScore ?? 0,
         textKey: r.textKey || 'text',
+        recencyKey: r.recencyKey || undefined,
+        facets: Array.isArray(r.facets)
+            ? r.facets
+                  .map((f) => ({
+                      key: typeof f?.key === 'string' ? f.key.trim() : '',
+                      type: (f?.type === 'integer' || f?.type === 'datetime' ? f.type : 'keyword') as
+                          | 'keyword'
+                          | 'integer'
+                          | 'datetime',
+                      label: typeof f?.label === 'string' && f.label ? f.label : (f?.key ?? ''),
+                      values: Array.isArray(f?.values)
+                          ? f.values
+                                .map((v) => (typeof v === 'string' ? v : v?.value))
+                                .filter((v): v is string => typeof v === 'string' && v.length > 0)
+                          : [],
+                  }))
+                  .filter((f) => f.key.length > 0)
+            : [],
         supportsTextQuery: provider.supportsTextQuery,
     }
 }
