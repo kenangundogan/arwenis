@@ -73,7 +73,7 @@ export const resolveRetrieval = (settings: AssistantConfig): ResolvedRetrieval =
         index: r.index,
         namespace: r.namespace ?? undefined,
         topK: r.topK ?? 5,
-        minScore: r.minScore ?? 0,
+        minScore: r.minScore ?? 0.5,
         textKey: r.textKey || 'text',
         recencyKey: r.recencyKey || undefined,
         facets: Array.isArray(r.facets)
