@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button, Input, Label, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 'eglador-ui-react'
 import { toast } from 'eglador-ui-react-toast'
 import { login } from '../_lib/api'
 import { useTranslations } from 'next-intl'
+import GoogleSignIn from '../_components/GoogleSignIn'
 
 export default function LoginPage() {
     const t = useTranslations()
@@ -14,6 +15,12 @@ export default function LoginPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        if (new URLSearchParams(window.location.search).get('error')) {
+            toast.error(t('auth.oauthError'))
+        }
+    }, [t])
 
     async function onSubmit(e: React.FormEvent) {
         e.preventDefault()
@@ -38,6 +45,7 @@ export default function LoginPage() {
                 </CardHeader>
                 <form onSubmit={onSubmit}>
                     <CardContent className="flex flex-col gap-4 mb-4">
+                        <GoogleSignIn />
                         <div className="flex flex-col gap-1.5">
                             <Label htmlFor="email">{t('common.email')}</Label>
                             <Input id="email" type="email" required autoComplete="email" placeholder={t('auth.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} />
