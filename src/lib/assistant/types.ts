@@ -44,7 +44,16 @@ export type ResolvedRetrieval = {
     topK: number
     minScore: number
     textKey: string
+    categoryKey: string
+    dateKey: string
+    categories: string[]
     supportsTextQuery: boolean
+}
+
+export type QueryPlan = {
+    query: string
+    categories: string[]
+    wantsLatest: boolean
 }
 
 export type ResolvedEmbedding = {
@@ -61,4 +70,6 @@ export type Citation = {
     text: string
     url?: string
     title?: string
+    category?: string
+    publishedAt?: string
 }

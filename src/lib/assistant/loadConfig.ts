@@ -25,6 +25,9 @@ export type AssistantConfig = {
         topK?: number | null
         minScore?: number | null
         textKey?: string | null
+        categoryKey?: string | null
+        dateKey?: string | null
+        categories?: ({ value?: string | null } | string)[] | null
     } | null
     prompts?: {
         systemPrompt?: string | null
@@ -33,6 +36,7 @@ export type AssistantConfig = {
         memoryExtractPrompt?: string | null
         titlePrompt?: string | null
         contextualizePrompt?: string | null
+        queryPlanPrompt?: string | null
     } | null
     memory?: {
         persistConversations?: boolean | null

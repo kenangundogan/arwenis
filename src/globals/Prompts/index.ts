@@ -9,6 +9,7 @@ import {
     DEFAULT_MEMORY_EXTRACT_PROMPT,
     DEFAULT_TITLE_PROMPT,
     DEFAULT_CONTEXTUALIZE_PROMPT,
+    DEFAULT_QUERY_PLAN_PROMPT,
 } from '@/lib/assistant/promptDefaults'
 
 export const Prompts: GlobalConfig = {
@@ -68,6 +69,14 @@ export const Prompts: GlobalConfig = {
             localized: true,
             defaultValue: DEFAULT_CONTEXTUALIZE_PROMPT,
             admin: { description: 'Takip sorularını (örn. "peki ya fiyatı?") önceki bağlamla bağımsız bir aramaya çevirir.' },
+        },
+        {
+            name: 'queryPlanPrompt',
+            label: 'Sorgu Planlama Prompt\'u',
+            type: 'textarea',
+            localized: true,
+            defaultValue: DEFAULT_QUERY_PLAN_PROMPT,
+            admin: { description: 'Kullanıcı mesajını arama planına çevirir: konu sorgusu + kategori(ler) + "en güncel mi?". {{categories}} otomatik doldurulur. "En son magazin haberleri" gibi sorgular için gereklidir.' },
         },
         ...auditFields,
     ],

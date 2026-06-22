@@ -5,7 +5,7 @@ import type { ChatMessage, Citation } from '@/lib/assistant/types'
 import { resolveLLM } from '@/lib/assistant/config'
 import { loadAssistantConfig } from '@/lib/assistant/loadConfig'
 import { getLLMAdapter } from '@/lib/assistant/llm'
-import { contextualizeQuery, retrieve } from '@/lib/assistant/retrieve'
+import { planQuery, retrieve } from '@/lib/assistant/retrieve'
 import { buildContext } from '@/lib/assistant/buildContext'
 import { extractUsedCitations, type UsedCitation } from '@/lib/assistant/guardrails'
 import { resolveMember } from '@/lib/assistant/auth/resolveMember'
@@ -185,8 +185,8 @@ export const chatEndpoint: Endpoint = {
                 try {
                     if (conv) send({ type: 'conversation', id: conv.id })
 
-                    const query = await contextualizeQuery(settings, history, message)
-                    citations = await retrieve(settings, query)
+                    const plan = await planQuery(settings, history, message)
+                    citations = await retrieve(settings, plan)
 
                     if (citations.length === 0 && !userContext) {
 

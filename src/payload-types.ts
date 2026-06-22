@@ -1930,6 +1930,10 @@ export interface Prompt {
    */
   contextualizePrompt?: string | null;
   /**
+   * Kullanıcı mesajını arama planına çevirir: konu sorgusu + kategori(ler) + "en güncel mi?". {{categories}} otomatik doldurulur. "En son magazin haberleri" gibi sorgular için gereklidir.
+   */
+  queryPlanPrompt?: string | null;
+  /**
    * Bu içeriği oluşturan kullanıcı
    */
   createdBy?: (string | null) | User;
@@ -2059,6 +2063,24 @@ export interface Retrieval {
    * Pasaj METNİNİN saklandığı alan adı. Örn. text / content / chunk.
    */
   textKey?: string | null;
+  /**
+   * Pasajın kategorisinin saklandığı alan adı. Kategori filtresi için kullanılır. Örn. category.
+   */
+  categoryKey?: string | null;
+  /**
+   * Yayın tarihinin (epoch ms / integer) saklandığı alan adı. "En güncel" sıralaması için kullanılır. Örn. publishedAtTs. (Qdrant'ta bu alanın integer index'i olmalı.)
+   */
+  dateKey?: string | null;
+  /**
+   * Bilgi tabanındaki geçerli kategoriler. Sorgu planlayıcı kullanıcının istediği kategoriyi yalnızca bu listeden eşleştirir (ör. "magazin haberleri"). value = payload'daki değer, label = görünen ad.
+   */
+  categories?:
+    | {
+        value: string;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Bu içeriği oluşturan kullanıcı
    */
@@ -2250,6 +2272,7 @@ export interface PromptsSelect<T extends boolean = true> {
   memoryExtractPrompt?: T;
   titlePrompt?: T;
   contextualizePrompt?: T;
+  queryPlanPrompt?: T;
   createdBy?: T;
   updatedBy?: T;
   _status?: T;
@@ -2305,6 +2328,15 @@ export interface RetrievalSelect<T extends boolean = true> {
   topK?: T;
   minScore?: T;
   textKey?: T;
+  categoryKey?: T;
+  dateKey?: T;
+  categories?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
   createdBy?: T;
   updatedBy?: T;
   _status?: T;

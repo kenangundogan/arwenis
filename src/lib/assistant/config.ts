@@ -75,6 +75,13 @@ export const resolveRetrieval = (settings: AssistantConfig): ResolvedRetrieval =
         topK: r.topK ?? 5,
         minScore: r.minScore ?? 0,
         textKey: r.textKey || 'text',
+        categoryKey: r.categoryKey || 'category',
+        dateKey: r.dateKey || 'publishedAtTs',
+        categories: Array.isArray(r.categories)
+            ? r.categories
+                  .map((c) => (typeof c === 'string' ? c : c?.value))
+                  .filter((v): v is string => typeof v === 'string' && v.length > 0)
+            : [],
         supportsTextQuery: provider.supportsTextQuery,
     }
 }

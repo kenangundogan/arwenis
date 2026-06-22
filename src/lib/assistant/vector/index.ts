@@ -14,7 +14,15 @@ const GQL_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/
 export type VectorQuery = {
         vector?: number[]
         text?: string
+        categories?: string[]
+        latest?: boolean
+        limit?: number
 }
+
+const buildQdrantFilter = (cfg: ResolvedRetrieval, q: VectorQuery): Record<string, unknown> | undefined =>
+    q.categories && q.categories.length > 0
+        ? { must: [{ key: cfg.categoryKey, match: { any: q.categories } }] }
+        : undefined
 
 export type PingResult = {
     ok: boolean
@@ -38,6 +46,7 @@ export const queryVector = async (cfg: ResolvedRetrieval, q: VectorQuery): Promi
             throw new VectorError(`Bilinmeyen vektör sağlayıcısı: ${cfg.providerId}`)
     }
 
+    if (q.latest) return raw
     return raw.filter((c) => c.score >= cfg.minScore)
 }
 
@@ -47,16 +56,42 @@ const requireVector = (q: VectorQuery): number[] => {
 }
 
 const queryQdrant = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Citation[]> => {
+    const limit = q.limit ?? cfg.topK
+    const filter = buildQdrantFilter(cfg, q)
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(cfg.apiKey ? { 'api-key': cfg.apiKey } : {}),
+    }
+    const citeOpts = { textKey: cfg.textKey, categoryKey: cfg.categoryKey, dateKey: cfg.dateKey }
+
+    if (q.latest) {
+        const res = await fetch(`${cfg.url}/collections/${encodeURIComponent(cfg.index)}/points/scroll`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                limit,
+                with_payload: true,
+                order_by: { key: cfg.dateKey, direction: 'desc' },
+                ...(filter ? { filter } : {}),
+            }),
+            signal: AbortSignal.timeout(VECTOR_TIMEOUT_MS),
+        })
+        if (!res.ok) throw new VectorError(`Qdrant hatası (${res.status}): ${(await res.text()).slice(0, 300)}`)
+        const json: any = await res.json()
+        const points: any[] = json.result?.points ?? []
+        return points
+            .map((p) => toCitation(p.payload, { id: String(p.id), score: 1, ...citeOpts }))
+            .filter((c): c is Citation => c !== null)
+    }
+
     const res = await fetch(`${cfg.url}/collections/${encodeURIComponent(cfg.index)}/points/search`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(cfg.apiKey ? { 'api-key': cfg.apiKey } : {}),
-        },
+        headers,
         body: JSON.stringify({
             vector: requireVector(q),
-            limit: cfg.topK,
+            limit,
             with_payload: true,
+            ...(filter ? { filter } : {}),
         }),
         signal: AbortSignal.timeout(VECTOR_TIMEOUT_MS),
     })
@@ -64,7 +99,7 @@ const queryQdrant = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Cita
     const json: any = await res.json()
     const results: any[] = json.result ?? []
     return results
-        .map((r) => toCitation(r.payload, { id: String(r.id), score: r.score, textKey: cfg.textKey }))
+        .map((r) => toCitation(r.payload, { id: String(r.id), score: r.score, ...citeOpts }))
         .filter((c): c is Citation => c !== null)
 }
 
@@ -77,9 +112,12 @@ const queryPinecone = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Ci
         },
         body: JSON.stringify({
             vector: requireVector(q),
-            topK: cfg.topK,
+            topK: q.limit ?? cfg.topK,
             includeMetadata: true,
             ...(cfg.namespace ? { namespace: cfg.namespace } : {}),
+            ...(q.categories && q.categories.length > 0
+                ? { filter: { [cfg.categoryKey]: { $in: q.categories } } }
+                : {}),
         }),
         signal: AbortSignal.timeout(VECTOR_TIMEOUT_MS),
     })
@@ -87,7 +125,7 @@ const queryPinecone = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Ci
     const json: any = await res.json()
     const matches: any[] = json.matches ?? []
     return matches
-        .map((m) => toCitation(m.metadata, { id: String(m.id), score: m.score, textKey: cfg.textKey }))
+        .map((m) => toCitation(m.metadata, { id: String(m.id), score: m.score, textKey: cfg.textKey, categoryKey: cfg.categoryKey, dateKey: cfg.dateKey }))
         .filter((c): c is Citation => c !== null)
 }
 
