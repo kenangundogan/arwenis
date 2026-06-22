@@ -5,6 +5,7 @@ import { canDelete, adminOnlyField } from '@/access'
 import { memberSelfRead, memberSelfUpdate, notMemberField } from '@/access/collection/memberOwned'
 import { preventHardDelete } from '@/access/collection/preventHardDelete'
 import { recordMemberLogin } from '@/collections/LoginSessions/recordLogin'
+import { generateForgotPasswordEmail, generateVerificationEmail } from '@/utilities/emailTemplates'
 import {
     composeValidators,
     onlyText,
@@ -25,6 +26,15 @@ export const Members: CollectionConfig = {
         maxLoginAttempts: 5,
         lockTime: 10 * 60 * 1000,
         cookies: { sameSite: 'Lax' },
+        verify: {
+            generateEmailSubject: () => 'Arwenis — E-posta adresini doğrula',
+            generateEmailHTML: ({ token }: { token?: string }) =>
+                generateVerificationEmail({ token, serverURL: process.env.SERVER_URL }),
+        },
+        forgotPassword: {
+            generateEmailSubject: () => 'Arwenis — Şifre sıfırlama',
+            generateEmailHTML: (args) => generateForgotPasswordEmail({ token: args?.token, serverURL: process.env.SERVER_URL }),
+        },
     },
     access: {
         create: () => true,
