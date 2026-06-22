@@ -35,7 +35,7 @@ export default function SettingsDialog({ open, onOpenChange, memberEmail }: Prop
                     defaultValue="profile"
                     orientation="vertical"
                     variant="pills"
-                    className="mt-2 flex overflow-hidden rounded-xl border border-zinc-200"
+                    className="mt-2 flex h-[600px] max-h-[80vh] overflow-hidden rounded-xl border border-zinc-200"
                 >
                     <TabsList className="w-44 shrink-0 gap-1 border-r border-zinc-200 bg-zinc-50 p-2">
                         <TabsTrigger value="general" icon={<Settings2 className="size-4" />}>
@@ -55,7 +55,7 @@ export default function SettingsDialog({ open, onOpenChange, memberEmail }: Prop
                         </TabsTrigger>
                     </TabsList>
 
-                    <div className="min-h-[60vh] flex-1 overflow-y-auto p-5">
+                    <div className="min-w-0 flex-1">
                         <TabsContent value="general" className="h-full">
                             <SoonSection title={t('settings.general')} icon={<Settings2 />} />
                         </TabsContent>
