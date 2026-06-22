@@ -7,6 +7,7 @@ import { toast } from 'eglador-ui-react-toast'
 import { MailCheck } from 'lucide-react'
 import { register } from '../_lib/api'
 import { useTranslations } from 'next-intl'
+import GoogleSignIn from '../_components/GoogleSignIn'
 
 export default function RegisterPage() {
     const t = useTranslations()
@@ -65,6 +66,7 @@ export default function RegisterPage() {
                         </CardHeader>
                         <form onSubmit={onSubmit}>
                             <CardContent className="flex flex-col gap-4 mb-4">
+                                <GoogleSignIn />
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="flex flex-col gap-1.5">
                                         <Label htmlFor="firstName">{t('common.firstName')}</Label>

@@ -45,7 +45,10 @@
         "checkEmailTitle": "E-postanı doğrula",
         "registeredVerify": "Hesabın oluşturuldu. Giriş yapabilmek için aşağıdaki adrese gönderdiğimiz doğrulama bağlantısına tıkla.",
         "backToLogin": "Girişe dön",
-        "invalidLink": "Geçersiz bağlantı."
+        "invalidLink": "Geçersiz bağlantı.",
+        "googleCta": "Google ile devam et",
+        "or": "veya",
+        "oauthError": "Google ile giriş tamamlanamadı. Lütfen tekrar deneyin."
     },
     "chat": {
         "emptyTitle": "Size nasıl yardımcı olabilirim?",
