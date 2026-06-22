@@ -35,6 +35,20 @@ export type ResolvedLLM = {
     temperature: number
 }
 
+export type FacetType = 'keyword' | 'integer' | 'datetime'
+
+export type Facet = {
+    key: string
+    type: FacetType
+    label: string
+    values: string[]
+}
+
+export type FacetFilter = {
+    key: string
+    values: string[]
+}
+
 export type ResolvedRetrieval = {
     providerId: 'pinecone' | 'qdrant' | 'weaviate'
     url: string
@@ -44,15 +58,14 @@ export type ResolvedRetrieval = {
     topK: number
     minScore: number
     textKey: string
-    categoryKey: string
-    dateKey: string
-    categories: string[]
+    facets: Facet[]
+    recencyKey?: string
     supportsTextQuery: boolean
 }
 
 export type QueryPlan = {
     query: string
-    categories: string[]
+    filters: FacetFilter[]
     wantsLatest: boolean
 }
 
@@ -70,6 +83,6 @@ export type Citation = {
     text: string
     url?: string
     title?: string
-    category?: string
     publishedAt?: string
+    facets?: Record<string, string>
 }

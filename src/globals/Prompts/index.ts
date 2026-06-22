@@ -76,7 +76,7 @@ export const Prompts: GlobalConfig = {
             type: 'textarea',
             localized: true,
             defaultValue: DEFAULT_QUERY_PLAN_PROMPT,
-            admin: { description: 'Kullanıcı mesajını arama planına çevirir: konu sorgusu + kategori(ler) + "en güncel mi?". {{categories}} otomatik doldurulur. "En son magazin haberleri" gibi sorgular için gereklidir.' },
+            admin: { description: 'Kullanıcı mesajını arama planına çevirir: konu sorgusu + faset filtreleri + "en güncel mi?". {{facets}} (Retrieval ▸ Fasetler) otomatik doldurulur. Faset filtreli/recency sorguları için gereklidir.' },
         },
         ...auditFields,
     ],

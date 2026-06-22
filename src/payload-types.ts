@@ -1930,7 +1930,7 @@ export interface Prompt {
    */
   contextualizePrompt?: string | null;
   /**
-   * Kullanıcı mesajını arama planına çevirir: konu sorgusu + kategori(ler) + "en güncel mi?". {{categories}} otomatik doldurulur. "En son magazin haberleri" gibi sorgular için gereklidir.
+   * Kullanıcı mesajını arama planına çevirir: konu sorgusu + faset filtreleri + "en güncel mi?". {{facets}} (Retrieval ▸ Fasetler) otomatik doldurulur. Faset filtreli/recency sorguları için gereklidir.
    */
   queryPlanPrompt?: string | null;
   /**
@@ -2064,20 +2064,33 @@ export interface Retrieval {
    */
   textKey?: string | null;
   /**
-   * Pasajın kategorisinin saklandığı alan adı. Kategori filtresi için kullanılır. Örn. category.
+   * "En güncel / en son" sıralaması için kullanılacak payload alanı (epoch ms / integer). Örn. publishedAtTs. Boşsa recency sıralaması devre dışı. (Qdrant'ta bu alanın integer index'i olmalı.)
    */
-  categoryKey?: string | null;
+  recencyKey?: string | null;
   /**
-   * Yayın tarihinin (epoch ms / integer) saklandığı alan adı. "En güncel" sıralaması için kullanılır. Örn. publishedAtTs. (Qdrant'ta bu alanın integer index'i olmalı.)
+   * Bilgi tabanının filtrelenebilir metadata alanları (domain-agnostik). Sorgu planlayıcı kullanıcı niyetini YALNIZCA buradaki fasetlere eşler. Örn. haber için key=category; e-ticaret için key=brand. Domain default'u YOKTUR; her kuruluma göre tanımlanır.
    */
-  dateKey?: string | null;
-  /**
-   * Bilgi tabanındaki geçerli kategoriler. Sorgu planlayıcı kullanıcının istediği kategoriyi yalnızca bu listeden eşleştirir (ör. "magazin haberleri"). value = payload'daki değer, label = görünen ad.
-   */
-  categories?:
+  facets?:
     | {
-        value: string;
+        /**
+         * Vektör payload'ındaki alan adı. Örn. category.
+         */
+        key: string;
+        /**
+         * keyword: değere göre filtre (ör. category=spor). Şu an planlayıcı keyword fasetlerini filtreler.
+         */
+        type: 'keyword' | 'integer' | 'datetime';
         label?: string | null;
+        /**
+         * Bu fasetin alabileceği değerler (kapalı küme). Boşsa planlayıcı serbest değer üretebilir. Örn. spor, magazin, ekonomi.
+         */
+        values?:
+          | {
+              value: string;
+              label?: string | null;
+              id?: string | null;
+            }[]
+          | null;
         id?: string | null;
       }[]
     | null;
@@ -2328,13 +2341,20 @@ export interface RetrievalSelect<T extends boolean = true> {
   topK?: T;
   minScore?: T;
   textKey?: T;
-  categoryKey?: T;
-  dateKey?: T;
-  categories?:
+  recencyKey?: T;
+  facets?:
     | T
     | {
-        value?: T;
+        key?: T;
+        type?: T;
         label?: T;
+        values?:
+          | T
+          | {
+              value?: T;
+              label?: T;
+              id?: T;
+            };
         id?: T;
       };
   createdBy?: T;

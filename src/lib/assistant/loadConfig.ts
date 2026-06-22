@@ -25,9 +25,15 @@ export type AssistantConfig = {
         topK?: number | null
         minScore?: number | null
         textKey?: string | null
-        categoryKey?: string | null
-        dateKey?: string | null
-        categories?: ({ value?: string | null } | string)[] | null
+        recencyKey?: string | null
+        facets?:
+            | ({
+                  key?: string | null
+                  type?: string | null
+                  label?: string | null
+                  values?: ({ value?: string | null } | string)[] | null
+              } | null)[]
+            | null
     } | null
     prompts?: {
         systemPrompt?: string | null

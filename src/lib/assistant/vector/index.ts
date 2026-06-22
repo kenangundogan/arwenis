@@ -1,4 +1,4 @@
-import type { Citation, ResolvedRetrieval } from '../types'
+import type { Citation, ResolvedRetrieval, FacetFilter } from '../types'
 import { toCitation } from './helpers'
 
 class VectorError extends Error {
@@ -14,15 +14,19 @@ const GQL_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/
 export type VectorQuery = {
         vector?: number[]
         text?: string
-        categories?: string[]
+        filters?: FacetFilter[]
         latest?: boolean
         limit?: number
 }
 
-const buildQdrantFilter = (cfg: ResolvedRetrieval, q: VectorQuery): Record<string, unknown> | undefined =>
-    q.categories && q.categories.length > 0
-        ? { must: [{ key: cfg.categoryKey, match: { any: q.categories } }] }
-        : undefined
+const activeFilters = (q: VectorQuery): FacetFilter[] =>
+    (q.filters ?? []).filter((f) => f.key && Array.isArray(f.values) && f.values.length > 0)
+
+const buildQdrantFilter = (q: VectorQuery): Record<string, unknown> | undefined => {
+    const filters = activeFilters(q)
+    if (filters.length === 0) return undefined
+    return { must: filters.map((f) => ({ key: f.key, match: { any: f.values } })) }
+}
 
 export type PingResult = {
     ok: boolean
@@ -57,12 +61,12 @@ const requireVector = (q: VectorQuery): number[] => {
 
 const queryQdrant = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Citation[]> => {
     const limit = q.limit ?? cfg.topK
-    const filter = buildQdrantFilter(cfg, q)
+    const filter = buildQdrantFilter(q)
     const headers = {
         'Content-Type': 'application/json',
         ...(cfg.apiKey ? { 'api-key': cfg.apiKey } : {}),
     }
-    const citeOpts = { textKey: cfg.textKey, categoryKey: cfg.categoryKey, dateKey: cfg.dateKey }
+    const citeOpts = { textKey: cfg.textKey, facetKeys: cfg.facets.map((f) => f.key), recencyKey: cfg.recencyKey }
 
     if (q.latest) {
         const res = await fetch(`${cfg.url}/collections/${encodeURIComponent(cfg.index)}/points/scroll`, {
@@ -71,7 +75,7 @@ const queryQdrant = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Cita
             body: JSON.stringify({
                 limit,
                 with_payload: true,
-                order_by: { key: cfg.dateKey, direction: 'desc' },
+                ...(cfg.recencyKey ? { order_by: { key: cfg.recencyKey, direction: 'desc' } } : {}),
                 ...(filter ? { filter } : {}),
             }),
             signal: AbortSignal.timeout(VECTOR_TIMEOUT_MS),
@@ -115,8 +119,8 @@ const queryPinecone = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Ci
             topK: q.limit ?? cfg.topK,
             includeMetadata: true,
             ...(cfg.namespace ? { namespace: cfg.namespace } : {}),
-            ...(q.categories && q.categories.length > 0
-                ? { filter: { [cfg.categoryKey]: { $in: q.categories } } }
+            ...(activeFilters(q).length > 0
+                ? { filter: { $and: activeFilters(q).map((f) => ({ [f.key]: { $in: f.values } })) } }
                 : {}),
         }),
         signal: AbortSignal.timeout(VECTOR_TIMEOUT_MS),
@@ -125,7 +129,7 @@ const queryPinecone = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Ci
     const json: any = await res.json()
     const matches: any[] = json.matches ?? []
     return matches
-        .map((m) => toCitation(m.metadata, { id: String(m.id), score: m.score, textKey: cfg.textKey, categoryKey: cfg.categoryKey, dateKey: cfg.dateKey }))
+        .map((m) => toCitation(m.metadata, { id: String(m.id), score: m.score, textKey: cfg.textKey, facetKeys: cfg.facets.map((f) => f.key), recencyKey: cfg.recencyKey }))
         .filter((c): c is Citation => c !== null)
 }
 

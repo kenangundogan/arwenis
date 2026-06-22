@@ -32,7 +32,8 @@ export const formatSources = (citations: Citation[]): string => {
             text = text.slice(0, TOTAL_SOURCES_CHAR_CAP - total)
         }
         total += text.length
-        const meta = [c.category, formatDate(c.publishedAt)].filter(Boolean).join(' · ')
+        const facetVals = c.facets ? Object.values(c.facets) : []
+        const meta = [...facetVals, formatDate(c.publishedAt)].filter(Boolean).join(' · ')
         const title = c.title ? c.title : `Kaynak ${n}`
         const head = meta ? `${title} (${meta})` : title
         blocks.push(`[${n}] ${head}\n${text}`)
