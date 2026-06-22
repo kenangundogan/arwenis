@@ -3,6 +3,9 @@ import type { Citation } from './sse'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 
+const withRecaptcha = (token?: string | null): Record<string, string> =>
+    token ? { ...JSON_HEADERS, 'x-recaptcha-token': token } : JSON_HEADERS
+
 export interface ConversationLite {
     id: string
     title?: string | null
@@ -28,20 +31,20 @@ const parseError = async (res: Response): Promise<Error> => {
     return new Error('İstek başarısız oldu.')
 }
 
-export async function login(email: string, password: string): Promise<AuthResponse> {
+export async function login(email: string, password: string, recaptchaToken?: string | null): Promise<AuthResponse> {
     const res = await fetch('/api/members/login', {
         method: 'POST',
-        headers: JSON_HEADERS,
+        headers: withRecaptcha(recaptchaToken),
         body: JSON.stringify({ email, password }),
     })
     if (!res.ok) throw await parseError(res)
     return res.json()
 }
 
-export async function register(data: RegisterInput): Promise<void> {
+export async function register(data: RegisterInput, recaptchaToken?: string | null): Promise<void> {
     const res = await fetch('/api/members', {
         method: 'POST',
-        headers: JSON_HEADERS,
+        headers: withRecaptcha(recaptchaToken),
         body: JSON.stringify({ ...data, authProvider: 'email' }),
     })
     if (!res.ok) throw await parseError(res)
@@ -51,10 +54,10 @@ export async function logout(): Promise<void> {
     await fetch('/api/members/logout', { method: 'POST', headers: JSON_HEADERS }).catch(() => {})
 }
 
-export async function forgotPassword(email: string): Promise<void> {
+export async function forgotPassword(email: string, recaptchaToken?: string | null): Promise<void> {
     const res = await fetch('/api/members/forgot-password', {
         method: 'POST',
-        headers: JSON_HEADERS,
+        headers: withRecaptcha(recaptchaToken),
         body: JSON.stringify({ email }),
     })
     if (!res.ok) throw await parseError(res)

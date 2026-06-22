@@ -5,6 +5,7 @@ import { canDelete, adminOnlyField } from '@/access'
 import { memberSelfRead, memberSelfUpdate, notMemberField } from '@/access/collection/memberOwned'
 import { preventHardDelete } from '@/access/collection/preventHardDelete'
 import { recordMemberLogin } from '@/collections/LoginSessions/recordLogin'
+import { authAbuseGuard } from '@/collections/Members/authAbuseGuard'
 import { generateForgotPasswordEmail, generateVerificationEmail } from '@/utilities/emailTemplates'
 import {
     composeValidators,
@@ -250,6 +251,7 @@ export const Members: CollectionConfig = {
         },
     ],
     hooks: {
+        beforeOperation: [authAbuseGuard],
         beforeLogin: [
             ({ user }) => {
                 if ((user as { status?: string })?.status === 'blocked') {
