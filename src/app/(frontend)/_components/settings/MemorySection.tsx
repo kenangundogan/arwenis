@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button, Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from 'eglador-ui-react'
+import { Button, Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, ScrollArea } from 'eglador-ui-react'
 import { toast } from 'eglador-ui-react-toast'
 import { Brain, Trash2 } from 'lucide-react'
 import { listMemory, deleteMemory, clearMemory, type MemoryLite } from '../../_lib/api'
@@ -38,7 +38,7 @@ export default function MemorySection() {
 
     return (
         <div className="flex h-full flex-col">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-zinc-100 px-5 pb-3 pt-5">
                 <div>
                     <h3 className="text-base font-semibold text-zinc-800">{t('memory.title')}</h3>
                     <p className="mt-0.5 text-sm text-zinc-500">{t('memory.subtitle')}</p>
@@ -50,7 +50,7 @@ export default function MemorySection() {
                 )}
             </div>
 
-            <div className="mt-4 flex-1 overflow-y-auto">
+            <ScrollArea className="min-h-0 flex-1" viewportClassName="h-full px-5 py-4">
                 {loading ? (
                     <p className="py-6 text-center text-sm text-zinc-400">{t('common.loading')}</p>
                 ) : items.length === 0 ? (
@@ -82,7 +82,7 @@ export default function MemorySection() {
                         ))}
                     </ul>
                 )}
-            </div>
+            </ScrollArea>
         </div>
     )
 }

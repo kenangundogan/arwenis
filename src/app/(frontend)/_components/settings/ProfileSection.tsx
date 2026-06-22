@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button, Input, Label } from 'eglador-ui-react'
+import { Button, Input, Label, ScrollArea } from 'eglador-ui-react'
 import { toast } from 'eglador-ui-react-toast'
 import { getMe, updateProfile } from '../../_lib/api'
 import { useTranslations } from 'next-intl'
@@ -57,11 +57,12 @@ export default function ProfileSection() {
 
     return (
         <div className="flex h-full flex-col">
-            <div>
+            <div className="shrink-0 border-b border-zinc-100 px-5 pb-3 pt-5">
                 <h3 className="text-base font-semibold text-zinc-800">{t('profile.title')}</h3>
                 <p className="mt-0.5 text-sm text-zinc-500">{t('profile.subtitle')}</p>
             </div>
-            <div className="mt-4 grid gap-3">
+            <ScrollArea className="min-h-0 flex-1" viewportClassName="h-full px-5 py-4">
+            <div className="grid gap-3">
                 <div className="flex flex-col gap-1.5">
                     <Label htmlFor="p-email">{t('common.email')}</Label>
                     <Input id="p-email" value={email} disabled readOnly />
@@ -87,11 +88,12 @@ export default function ProfileSection() {
                     </div>
                 </div>
             </div>
-            <div className="mt-auto flex justify-end pt-4">
+            <div className="mt-6 flex justify-end">
                 <Button variant="solid" loading={saving} disabled={loading} onClick={save}>
                     {t('profile.save')}
                 </Button>
             </div>
+            </ScrollArea>
         </div>
     )
 }
