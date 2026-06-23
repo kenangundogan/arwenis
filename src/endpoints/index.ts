@@ -3,6 +3,7 @@ import { chatEndpoint } from './assistant/chat'
 import { exportEndpoint } from './assistant/export'
 import { googleStartEndpoint, googleCallbackEndpoint } from './auth/google'
 import { authProvidersEndpoint } from './auth/providers'
+import { deleteAccountEndpoint } from './auth/deleteAccount'
 
 export const endpoints: Endpoint[] = [
     chatEndpoint,
@@ -10,4 +11,5 @@ export const endpoints: Endpoint[] = [
     authProvidersEndpoint,
     googleStartEndpoint,
     googleCallbackEndpoint,
+    deleteAccountEndpoint,
 ]

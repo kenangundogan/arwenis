@@ -50,6 +50,14 @@ export async function register(data: RegisterInput, recaptchaToken?: string | nu
     if (!res.ok) throw await parseError(res)
 }
 
+export async function deleteAccount(): Promise<void> {
+    const res = await fetch('/api/assistant/account/delete', {
+        method: 'POST',
+        headers: { ...JSON_HEADERS, 'Sec-Fetch-Site': 'same-origin' },
+    })
+    if (!res.ok) throw await parseError(res)
+}
+
 export async function logout(): Promise<void> {
     await fetch('/api/members/logout', { method: 'POST', headers: JSON_HEADERS }).catch(() => {})
 }

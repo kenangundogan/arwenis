@@ -119,7 +119,17 @@
         "clearMemoryDesc": "Hakkında öğrenilen tüm hafıza kayıtları kaldırılır.",
         "clearMemoryConfirmTitle": "Tüm hafıza silinsin mi?",
         "clearMemoryConfirmDesc": "Hakkında hatırlanan her şey kaldırılacak. Bu işlem geri alınamaz.",
-        "memoryCleared": "Tüm hafıza silindi."
+        "memoryCleared": "Tüm hafıza silindi.",
+        "dangerZone": "Tehlikeli Bölge",
+        "deleteAccountTitle": "Hesabımı sil",
+        "deleteAccountDesc": "Hesabın ve tüm verilerin kalıcı olarak silinir.",
+        "deleteAccountConfirmTitle": "Hesabını silmek istediğine emin misin?",
+        "deleteAccountWarn1": "Hesabını silmek kalıcıdır ve geri alınamaz.",
+        "deleteAccountWarn2": "Asistana ve tüm verilerine erişimin engellenir.",
+        "deleteAccountWarn3": "Aynı e-posta adresiyle yeni bir hesap oluşturamazsın.",
+        "deleteAccountWarn4": "Verilerin en geç 30 gün içinde silinir; yasal yükümlülükler için sınırlı veri daha uzun saklanabilir.",
+        "deleteAccountTypeHint": "Onaylamak için aşağıya {word} yaz.",
+        "deleteAccountWord": "SİL"
     },
     "sessions": {
         "title": "Son Oturumlar",
