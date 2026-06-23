@@ -96,7 +96,12 @@ export async function getMessages(conversationId: string): Promise<MessageLite[]
 }
 
 export async function deleteConversation(id: string): Promise<void> {
-    await fetch(`/api/conversations/${id}`, { method: 'DELETE' }).catch(() => {})
+    const res = await fetch(`/api/conversations/${id}`, {
+        method: 'PATCH',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ deletedAt: new Date().toISOString() }),
+    })
+    if (!res.ok) throw await parseError(res)
 }
 
 export async function renameConversation(id: string, title: string): Promise<void> {

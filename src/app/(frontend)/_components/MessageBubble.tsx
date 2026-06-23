@@ -36,7 +36,7 @@ export default function MessageBubble({ message }: { message: ChatMessage }) {
                 AI
             </div>
             <div className="min-w-0 flex-1 text-sm text-zinc-800">
-                {message.content ? <Markdown content={message.content} /> : message.pending ? <Thinking /> : null}
+                {message.content ? <Markdown content={message.content} citations={message.citations} /> : message.pending ? <Thinking /> : null}
                 <SourceChips citations={message.citations} />
                 {message.content && !message.pending && (
                     <MessageActions messageId={message.id} content={message.content} />

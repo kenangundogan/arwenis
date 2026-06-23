@@ -31,6 +31,7 @@ import {
     type ConversationLite,
     type FolderLite,
 } from '../_lib/api'
+import { toast } from 'eglador-ui-react-toast'
 import { useTranslations } from 'next-intl'
 
 interface Props {
@@ -67,7 +68,12 @@ export default function ConversationItem({ conv, active, folders, onChanged }: P
     }
 
     async function doDelete() {
-        await deleteConversation(conv.id)
+        try {
+            await deleteConversation(conv.id)
+        } catch (err) {
+            toast.error((err as Error).message || t('common.somethingWentWrong'))
+            return
+        }
         setConfirmOpen(false)
         onChanged()
         if (active) router.push('/chat')

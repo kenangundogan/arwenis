@@ -11,6 +11,8 @@ export interface Citation {
     title?: string
     url?: string
     score?: number
+    snippet?: string
+    publishedAt?: string
 }
 
 export async function readSSE(

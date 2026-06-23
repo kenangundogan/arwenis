@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Typewriter } from 'eglador-ui-react-typewriter'
+import { useTranslations } from 'next-intl'
 import { useChatStream } from '../_hooks/useChatStream'
 import { getMessages } from '../_lib/api'
 import MessageList from './MessageList'
@@ -11,9 +12,27 @@ interface Props {
     conversationId?: string
     welcome: string
     suggestions: string[]
+    userName?: string
 }
 
-export default function ChatView({ conversationId, welcome, suggestions }: Props) {
+export default function ChatView({ conversationId, welcome, suggestions, userName }: Props) {
+    const t = useTranslations()
+    const [greeting, setGreeting] = useState('')
+    const [today, setToday] = useState('')
+
+    useEffect(() => {
+        const h = new Date().getHours()
+        const g =
+            h < 6 || h >= 22
+                ? t('chat.greetingNight')
+                : h < 12
+                  ? t('chat.greetingMorning')
+                  : h < 18
+                    ? t('chat.greetingDay')
+                    : t('chat.greetingEvening')
+        setGreeting(userName ? t('chat.greetingWithName', { greeting: g, name: userName }) : g)
+        setToday(t('chat.todayIs', { date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) }))
+    }, [userName, t])
     const { messages, streaming, send, stop, setHistory } = useChatStream({
         initialConversationId: conversationId,
         onConversationCreated: (id) => {
@@ -48,9 +67,13 @@ export default function ChatView({ conversationId, welcome, suggestions }: Props
             <div className="flex-1 overflow-y-auto">
                 {empty ? (
                     <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center gap-6 px-4 text-center">
-                        <h1 className="text-2xl font-semibold text-zinc-900">
-                            <Typewriter hideCursorWhenDone>{welcome}</Typewriter>
-                        </h1>
+                        <div className="space-y-1.5">
+                            {greeting && <h1 className="text-2xl font-semibold text-zinc-900">{greeting}</h1>}
+                            {today && <p className="text-sm text-zinc-400">{today}</p>}
+                            <p className="text-base text-zinc-500">
+                                <Typewriter hideCursorWhenDone>{welcome}</Typewriter>
+                            </p>
+                        </div>
                         {suggestions.length > 0 && (
                             <div className="flex flex-wrap justify-center gap-2">
                                 {suggestions.map((q, i) => (
