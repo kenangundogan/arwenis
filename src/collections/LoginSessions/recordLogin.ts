@@ -30,15 +30,19 @@ export const recordAdminLogin: CollectionAfterLoginHook = async ({ req, user }) 
     }
 }
 
-export const recordMemberLogin: CollectionAfterLoginHook = async ({ req, user }) => {
+export const recordMemberLoginSession = async (req: PayloadRequest, memberId: string): Promise<void> => {
     try {
         await req.payload.create({
             collection: 'member-login-sessions',
-            data: { member: user.id, ...extractSession(req) },
+            data: { member: memberId, ...extractSession(req) },
             depth: 0,
             overrideAccess: true,
         })
     } catch (err) {
         req.payload.logger.error({ err, msg: 'member-login-sessions kaydı oluşturulamadı' })
     }
+}
+
+export const recordMemberLogin: CollectionAfterLoginHook = async ({ req, user }) => {
+    await recordMemberLoginSession(req, user.id)
 }
