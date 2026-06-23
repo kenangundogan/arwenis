@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { toast } from 'eglador-ui-react-toast'
 import { readSSE, type Citation } from '../_lib/sse'
 
 export interface ChatMessage {
@@ -57,7 +58,11 @@ export function useChatStream({ initialConversationId, onConversationCreated }: 
                     body: JSON.stringify({ message: content, conversationId: conversationIdRef.current }),
                     signal: ac.signal,
                 })
-                if (!res.ok || !res.body) throw new Error('stream başlatılamadı')
+                if (!res.ok) {
+                    const body = await res.json().catch(() => null)
+                    throw new Error(body?.errors?.[0]?.message || body?.message || 'Mesaj gönderilemedi.')
+                }
+                if (!res.body) throw new Error('Yanıt alınamadı.')
 
                 await readSSE(res, (e) => {
                     if (e.type === 'conversation') {
@@ -75,10 +80,18 @@ export function useChatStream({ initialConversationId, onConversationCreated }: 
                         setMessages((m) => updateLastAssistant(m, (a) => ({ ...a, content: a.content || e.message })))
                     }
                 })
-            } catch {
-                /* aborted or network error — keep whatever streamed so far */
+            } catch (err) {
+                if (!ac.signal.aborted) {
+                    toast.error((err as Error)?.message || 'Mesaj gönderilemedi.')
+                }
             } finally {
-                setMessages((m) => updateLastAssistant(m, (a) => ({ ...a, pending: false })))
+                setMessages((m) => {
+                    const i = m.length - 1
+                    if (i >= 0 && m[i].role === 'assistant' && !m[i].content) {
+                        return m.slice(0, i)
+                    }
+                    return updateLastAssistant(m, (a) => ({ ...a, pending: false }))
+                })
                 setStreaming(false)
                 abortRef.current = null
             }

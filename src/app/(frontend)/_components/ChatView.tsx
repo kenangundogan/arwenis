@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { Typewriter } from 'eglador-ui-react-typewriter'
 import { useTranslations } from 'next-intl'
 import { useChatStream } from '../_hooks/useChatStream'
@@ -60,11 +61,44 @@ export default function ChatView({ conversationId, welcome, suggestions, userNam
         }
     }, [conversationId, setHistory])
 
+    const scrollRef = useRef<HTMLDivElement>(null)
+    const stick = useRef(true)
+    const [atBottom, setAtBottom] = useState(true)
+
+    const onScroll = () => {
+        const el = scrollRef.current
+        if (!el) return
+        const near = el.scrollHeight - el.scrollTop - el.clientHeight < 120
+        stick.current = near
+        setAtBottom(near)
+    }
+
+    const scrollToBottom = () => {
+        const el = scrollRef.current
+        if (!el) return
+        stick.current = true
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    }
+
+    useEffect(() => {
+        const el = scrollRef.current
+        if (el && stick.current) el.scrollTop = el.scrollHeight
+    }, [messages])
+
+    useEffect(() => {
+        stick.current = true
+    }, [conversationId])
+
+    const handleSend = (text: string) => {
+        stick.current = true
+        send(text)
+    }
+
     const empty = messages.length === 0
 
     return (
         <div className="flex h-full flex-col">
-            <div className="flex-1 overflow-y-auto">
+            <div ref={scrollRef} onScroll={onScroll} className="flex-1 overflow-y-auto">
                 {empty ? (
                     <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center gap-6 px-4 text-center">
                         <div className="space-y-1.5">
@@ -79,7 +113,7 @@ export default function ChatView({ conversationId, welcome, suggestions, userNam
                                 {suggestions.map((q, i) => (
                                     <button
                                         key={i}
-                                        onClick={() => send(q)}
+                                        onClick={() => handleSend(q)}
                                         className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-900"
                                     >
                                         {q}
@@ -92,7 +126,19 @@ export default function ChatView({ conversationId, welcome, suggestions, userNam
                     <MessageList messages={messages} />
                 )}
             </div>
-            <Composer onSend={send} onStop={stop} streaming={streaming} />
+            <div className="relative">
+                {!empty && !atBottom && (
+                    <button
+                        type="button"
+                        onClick={scrollToBottom}
+                        aria-label={t('chat.scrollToBottom')}
+                        className="absolute bottom-full left-1/2 z-10 mb-3 flex size-9 -translate-x-1/2 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-md transition hover:bg-zinc-50 hover:text-zinc-900"
+                    >
+                        <ChevronDown className="size-5" />
+                    </button>
+                )}
+                <Composer onSend={handleSend} onStop={stop} streaming={streaming} />
+            </div>
         </div>
     )
 }

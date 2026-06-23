@@ -103,44 +103,41 @@ export default function DataSection() {
                         </Button>
                     </div>
 
-                    <div className="flex items-start justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50/40 px-4 py-3">
+                    <div className="flex items-start justify-between gap-3 rounded-lg border border-zinc-200 px-4 py-3">
                         <div className="min-w-0">
-                            <div className="flex items-center gap-2 text-sm font-medium text-rose-700">
+                            <div className="flex items-center gap-2 text-sm font-medium text-zinc-800">
                                 <Trash2 className="size-4" />
                                 {t('data.clearTitle')}
                             </div>
                             <p className="mt-0.5 text-sm text-zinc-500">{t('data.clearDesc')}</p>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => setConfirm('chats')} className="shrink-0 border-rose-300 text-rose-600 hover:bg-rose-50">
+                        <Button variant="solid" size="sm" onClick={() => setConfirm('chats')}>
                             {t('data.clearCta')}
                         </Button>
                     </div>
 
-                    <div className="flex items-start justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50/40 px-4 py-3">
+                    <div className="flex items-start justify-between gap-3 rounded-lg border border-zinc-200 px-4 py-3">
                         <div className="min-w-0">
-                            <div className="flex items-center gap-2 text-sm font-medium text-rose-700">
+                            <div className="flex items-center gap-2 text-sm font-medium text-zinc-800">
                                 <Brain className="size-4" />
                                 {t('data.clearMemoryTitle')}
                             </div>
                             <p className="mt-0.5 text-sm text-zinc-500">{t('data.clearMemoryDesc')}</p>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => setConfirm('memory')} className="shrink-0 border-rose-300 text-rose-600 hover:bg-rose-50">
+                        <Button variant="solid" size="sm" onClick={() => setConfirm('memory')}>
                             {t('data.clearCta')}
                         </Button>
                     </div>
-                </div>
 
-                <div className="mt-6">
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-rose-600">{t('data.dangerZone')}</h4>
-                    <div className="mt-2 flex items-start justify-between gap-3 rounded-lg border border-rose-300 bg-rose-50 px-4 py-3">
+                    <div className="flex items-start justify-between gap-3 rounded-lg border border-zinc-200 px-4 py-3">
                         <div className="min-w-0">
-                            <div className="flex items-center gap-2 text-sm font-medium text-rose-700">
+                            <div className="flex items-center gap-2 text-sm font-medium text-zinc-800">
                                 <UserX className="size-4" />
                                 {t('data.deleteAccountTitle')}
                             </div>
                             <p className="mt-0.5 text-sm text-zinc-500">{t('data.deleteAccountDesc')}</p>
                         </div>
-                        <Button variant="solid" size="sm" onClick={() => setAccountOpen(true)} className="shrink-0 bg-rose-600 text-white hover:bg-rose-700">
+                        <Button variant="solid" size="sm" onClick={() => setAccountOpen(true)}>
                             {t('data.deleteAccountTitle')}
                         </Button>
                     </div>
@@ -155,7 +152,7 @@ export default function DataSection() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={runConfirm} disabled={busy} className="bg-rose-600 text-white hover:bg-rose-700">
+                        <AlertDialogAction onClick={runConfirm} disabled={busy}>
                             {t('data.clearCta')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -186,7 +183,7 @@ export default function DataSection() {
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={onDeleteAccount} disabled={!canDelete || deleting} className="bg-rose-600 text-white hover:bg-rose-700">
+                        <AlertDialogAction onClick={onDeleteAccount} disabled={!canDelete || deleting}>
                             {t('data.deleteAccountTitle')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
