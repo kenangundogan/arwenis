@@ -104,6 +104,25 @@ export async function deleteConversation(id: string): Promise<void> {
     if (!res.ok) throw await parseError(res)
 }
 
+export async function clearConversations(): Promise<void> {
+    const items = await listConversations()
+    await Promise.all(items.map((c) => deleteConversation(c.id)))
+}
+
+export async function exportData(): Promise<void> {
+    const res = await fetch('/api/assistant/export')
+    if (!res.ok) throw await parseError(res)
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'arwenis-verilerim.json'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+}
+
 export async function renameConversation(id: string, title: string): Promise<void> {
     await fetch(`/api/conversations/${id}`, {
         method: 'PATCH',

@@ -10,11 +10,13 @@ import {
     TabsTrigger,
     TabsContent,
 } from 'eglador-ui-react'
-import { Settings2, User, Brain, BarChart3, ShieldCheck } from 'lucide-react'
+import { Settings2, User, Brain, BarChart3, ShieldCheck, Database } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import ProfileSection from './ProfileSection'
+import GeneralSection from './GeneralSection'
 import MemorySection from './MemorySection'
 import AccountSection from './AccountSection'
+import DataSection from './DataSection'
 import SoonSection from './SoonSection'
 
 interface Props {
@@ -53,11 +55,14 @@ export default function SettingsDialog({ open, onOpenChange, memberEmail }: Prop
                         <TabsTrigger value="account" icon={<ShieldCheck className="size-4" />}>
                             {t('settings.account')}
                         </TabsTrigger>
+                        <TabsTrigger value="data" icon={<Database className="size-4" />}>
+                            {t('data.title')}
+                        </TabsTrigger>
                     </TabsList>
 
                     <div className="min-w-0 flex-1">
                         <TabsContent value="general" className="h-full">
-                            <SoonSection title={t('settings.general')} icon={<Settings2 />} />
+                            <GeneralSection />
                         </TabsContent>
                         <TabsContent value="profile" className="h-full">
                             <ProfileSection />
@@ -70,6 +75,9 @@ export default function SettingsDialog({ open, onOpenChange, memberEmail }: Prop
                         </TabsContent>
                         <TabsContent value="account" className="h-full">
                             <AccountSection email={memberEmail} />
+                        </TabsContent>
+                        <TabsContent value="data" className="h-full">
+                            <DataSection />
                         </TabsContent>
                     </div>
                 </Tabs>

@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button, Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, ScrollArea } from 'eglador-ui-react'
-import { toast } from 'eglador-ui-react-toast'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, ScrollArea } from 'eglador-ui-react'
 import { Brain, Trash2 } from 'lucide-react'
-import { listMemory, deleteMemory, clearMemory, type MemoryLite } from '../../_lib/api'
+import { listMemory, deleteMemory, type MemoryLite } from '../../_lib/api'
 import { useTranslations } from 'next-intl'
 
 export default function MemorySection() {
@@ -30,24 +29,11 @@ export default function MemorySection() {
         await deleteMemory(id)
     }
 
-    async function clearAll() {
-        setItems([])
-        await clearMemory()
-        toast.success(t('memory.cleared'))
-    }
-
     return (
         <div className="flex h-full flex-col">
-            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-zinc-100 px-5 pb-3 pt-5">
-                <div>
-                    <h3 className="text-base font-semibold text-zinc-800">{t('memory.title')}</h3>
-                    <p className="mt-0.5 text-sm text-zinc-500">{t('memory.subtitle')}</p>
-                </div>
-                {items.length > 0 && (
-                    <Button variant="ghost" size="sm" className="shrink-0 text-rose-600" onClick={clearAll}>
-                        {t('memory.clearAll')}
-                    </Button>
-                )}
+            <div className="shrink-0 border-b border-zinc-100 px-5 pb-3 pt-5">
+                <h3 className="text-base font-semibold text-zinc-800">{t('memory.title')}</h3>
+                <p className="mt-0.5 text-sm text-zinc-500">{t('memory.subtitle')}</p>
             </div>
 
             <ScrollArea className="min-h-0 flex-1" viewportClassName="h-full px-5 py-4">
