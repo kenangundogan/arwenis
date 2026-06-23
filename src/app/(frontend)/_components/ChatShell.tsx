@@ -43,7 +43,7 @@ export default function ChatShell({
     }, [refresh])
 
     return (
-        <SidebarProvider>
+        <SidebarProvider className="h-svh overflow-hidden">
             <Sidebar collapsible="offcanvas">
                 <AppSidebar
                     convs={convs}
@@ -57,7 +57,7 @@ export default function ChatShell({
                 />
                 <SidebarRail />
             </Sidebar>
-            <SidebarInset>
+            <SidebarInset className="overflow-hidden">
                 <header className="flex h-12 shrink-0 items-center gap-2 border-b border-zinc-200 bg-white px-3">
                     <SidebarTrigger />
                     {/* eslint-disable-next-line @next/next/no-img-element */}
