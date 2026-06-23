@@ -2,6 +2,8 @@ import type { Endpoint, PayloadRequest } from 'payload'
 import { generatePayloadCookie, getFieldsToSign, jwtSign } from 'payload'
 import { randomBytes, randomUUID } from 'crypto'
 
+import { recordMemberLoginSession } from '@/collections/LoginSessions/recordLogin'
+
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
@@ -201,6 +203,7 @@ export const googleCallbackEndpoint: Endpoint = {
             if ((member as any).status === 'blocked') return loginRedirect('blocked')
 
             const sessionCookie = await buildSessionCookie(req.payload, member)
+            await recordMemberLoginSession(req, String(member.id))
             return successPage(sessionCookie)
         } catch (err) {
             req.payload.logger.error({ err }, '[oauth] google callback failed')

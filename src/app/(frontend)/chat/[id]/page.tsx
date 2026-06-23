@@ -23,5 +23,5 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
     if (found.docs.length === 0) notFound()
 
     const { welcome, suggestions } = await getWelcome()
-    return <ChatView conversationId={id} welcome={welcome} suggestions={suggestions} />
+    return <ChatView conversationId={id} welcome={welcome} suggestions={suggestions} userName={member.firstName ?? undefined} />
 }

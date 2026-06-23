@@ -11,6 +11,8 @@ export type UsedCitation = {
     title?: string
     url?: string
     score: number
+    snippet?: string
+    publishedAt?: string
 }
 
 export const extractUsedCitations = (text: string, citations: Citation[]): UsedCitation[] => {
@@ -25,6 +27,7 @@ export const extractUsedCitations = (text: string, citations: Citation[]): UsedC
         .sort((a, b) => a - b)
         .map((n) => {
             const c = citations[n - 1]
-            return { n, title: c.title, url: c.url, score: c.score }
+            const snippet = typeof c.text === 'string' ? c.text.replace(/\s+/g, ' ').trim().slice(0, 180) : ''
+            return { n, title: c.title, url: c.url, score: c.score, snippet: snippet || undefined, publishedAt: c.publishedAt }
         })
 }

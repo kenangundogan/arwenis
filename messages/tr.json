@@ -52,6 +52,12 @@
     },
     "chat": {
         "emptyTitle": "Size nasıl yardımcı olabilirim?",
+        "greetingMorning": "Günaydın",
+        "greetingDay": "İyi günler",
+        "greetingEvening": "İyi akşamlar",
+        "greetingNight": "İyi geceler",
+        "greetingWithName": "{greeting}, {name}",
+        "todayIs": "Bugün {date}",
         "newChat": "Yeni sohbet",
         "placeholder": "Bir mesaj yazın…",
         "rename": "Yeniden adlandır",
