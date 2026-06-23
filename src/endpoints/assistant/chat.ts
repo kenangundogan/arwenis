@@ -154,7 +154,7 @@ export const chatEndpoint: Endpoint = {
                 try {
                     if (conv) send({ type: 'conversation', id: conv.id })
 
-                    const plan = await planQuery(settings, history, message)
+                    const plan = await planQuery(settings, history, message, userContext)
                     try {
                         citations = await retrieve(settings, plan)
                     } catch (err) {
@@ -162,9 +162,10 @@ export const chatEndpoint: Endpoint = {
                         citations = []
                     }
 
+                    const noCtxReply = settings.prompts?.noContextReply || 'Bu konuda elimde bilgi yok.'
                     if (citations.length === 0 && !userContext) {
 
-                        full = settings.prompts?.noContextReply || 'Bu konuda elimde bilgi yok.'
+                        full = noCtxReply
                         send({ type: 'text', text: full })
                     } else {
                         const messages = buildContext({
@@ -174,6 +175,7 @@ export const chatEndpoint: Endpoint = {
                             citations,
                             history,
                             userMessage: message,
+                            noSourcesReply: citations.length === 0 ? noCtxReply : undefined,
                         })
                         const llm = resolveLLM(settings)
                         const adapter = getLLMAdapter(llm.adapter)

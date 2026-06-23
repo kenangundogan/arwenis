@@ -50,6 +50,7 @@ export type BuildContextArgs = {
     citations: Citation[]
     history: ChatMessage[]
     userMessage: string
+    noSourcesReply?: string | null
 }
 
 export const buildContext = (args: BuildContextArgs): ChatMessage[] => {
@@ -59,7 +60,17 @@ export const buildContext = (args: BuildContextArgs): ChatMessage[] => {
         persona: args.persona ?? '',
         user: args.userContext ?? '',
     })
-    const system = `${INJECTION_GUARD}\n\n${filled}`
+    let system = `${INJECTION_GUARD}\n\n${filled}`
+
+    if (args.noSourcesReply) {
+        system +=
+            '\n\nÖNEMLİ: Bu soru için bilgi tabanında eşleşen KAYNAK BULUNAMADI. Soru kullanıcının KENDİSİ ' +
+            'hakkındaysa ve yanıtı "Kullanıcı bağlamı"nda VARSA (ör. adı, yaşı, işi/çalıştığı yer, yaşadığı ' +
+            'yer, ilgi alanları, geçmiş konuşmaları), bu bilgiyi DOĞRUDAN ve kısaca yanıtla. Bunun dışında — ' +
+            'genel kültür, kod, matematik, çeviri, tanım, yaratıcı içerik (şiir/metin) ve kaynak gerektiren ' +
+            'her istek için — kendi genel bilgini KULLANMA; aynen şu cümleyi yaz ve başka hiçbir şey ekleme: ' +
+            `"${args.noSourcesReply}"`
+    }
 
     return [
         { role: 'system', content: system },

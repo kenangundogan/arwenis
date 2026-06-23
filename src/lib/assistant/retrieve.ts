@@ -91,10 +91,15 @@ export const contextualizeQuery = async (
     }
 }
 
+const PERSONAL_REF = /tuttuğ|taraftar|bana (uygun|göre|özel)|benim için|ilgi alan|ilgilendiğ|sevdiğ|favori|tercih etti|şehrim|memleket|mesleğ|işim|işyer|iş yer|çalıştığ|şirketim|firmam|nerede çalış|hangi (firma|şirket)|bana .*haber/i
+
+const hasPersonalReference = (message: string): boolean => PERSONAL_REF.test(message)
+
 export const planQuery = async (
     settings: AssistantConfig,
     history: ChatMessage[],
     message: string,
+    userContext?: string | null,
 ): Promise<QueryPlan> => {
     const fallback: QueryPlan = { query: message, filters: [], wantsLatest: false }
     const template = settings.prompts?.queryPlanPrompt
@@ -103,6 +108,7 @@ export const planQuery = async (
     const facets = configuredFacets(settings)
     const system = template.replace('{{facets}}', describeFacets(facets))
     const convo = history.map((m) => `${m.role}: ${m.content}`).join('\n')
+    const ctx = userContext && hasPersonalReference(message) ? `${userContext}\n\n` : ''
 
     const llm = resolveLLM(settings)
     try {
@@ -114,7 +120,7 @@ export const planQuery = async (
             temperature: 0,
             messages: [
                 { role: 'system', content: system },
-                { role: 'user', content: `${convo ? `Geçmiş:\n${convo}\n\n` : ''}Son mesaj: ${message}` },
+                { role: 'user', content: `${ctx}${convo ? `Geçmiş:\n${convo}\n\n` : ''}Son mesaj: ${message}` },
             ],
         })
         const json = parseJsonObject(text)

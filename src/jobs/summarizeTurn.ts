@@ -2,7 +2,7 @@ import type { TaskConfig } from 'payload'
 
 import { loadAssistantConfig } from '@/lib/assistant/loadConfig'
 import { summarizeAndExtract } from '@/lib/assistant/summarize'
-import { loadHistory, saveMemories } from '@/lib/assistant/store'
+import { loadHistory, loadMemories, saveMemories } from '@/lib/assistant/store'
 
 export const summarizeTurnTask: TaskConfig<'summarizeTurn'> = {
     slug: 'summarizeTurn',
@@ -28,10 +28,13 @@ export const summarizeTurnTask: TaskConfig<'summarizeTurn'> = {
             const turns = await loadHistory(payload, String(input.conversationId), windowSize)
             if (turns.length === 0) return { output: {} }
 
+            const existingFacts = crossConv && memberId ? (await loadMemories(payload, String(memberId))).map((m) => m.text) : []
+
             const { summary, newFacts } = await summarizeAndExtract(settings, {
                 priorSummary: conv.summary,
                 turns,
                 extractFacts: crossConv,
+                existingFacts,
             })
             if (summary) {
                 await payload.update({
