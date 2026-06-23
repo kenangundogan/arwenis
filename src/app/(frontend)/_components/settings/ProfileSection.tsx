@@ -13,7 +13,6 @@ export default function ProfileSection() {
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [gsm, setGsm] = useState('')
-    const [locale, setLocale] = useState('')
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
 
@@ -28,7 +27,6 @@ export default function ProfileSection() {
                 setFirstName(m.firstName ?? '')
                 setLastName(m.lastName ?? '')
                 setGsm(m.gsm ?? '')
-                setLocale(m.locale ?? '')
             }
             setLoading(false)
         })
@@ -45,7 +43,6 @@ export default function ProfileSection() {
                 firstName: firstName || undefined,
                 lastName: lastName || undefined,
                 gsm: gsm || undefined,
-                locale: locale || undefined,
             })
             toast.success(t('profile.saved'))
         } catch (err) {
@@ -77,15 +74,9 @@ export default function ProfileSection() {
                         <Input id="p-last" value={lastName} disabled={loading} onChange={(e) => setLastName(e.target.value)} />
                     </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="p-gsm">{t('profile.gsm')}</Label>
-                        <Input id="p-gsm" value={gsm} disabled={loading} placeholder="5XX XXX XXXX" onChange={(e) => setGsm(e.target.value)} />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="p-locale">{t('profile.locale')}</Label>
-                        <Input id="p-locale" value={locale} disabled={loading} placeholder="tr" onChange={(e) => setLocale(e.target.value)} />
-                    </div>
+                <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="p-gsm">{t('profile.gsm')}</Label>
+                    <Input id="p-gsm" value={gsm} disabled={loading} placeholder="5XX XXX XXXX" onChange={(e) => setGsm(e.target.value)} />
                 </div>
             </div>
             <div className="mt-6 flex justify-end">

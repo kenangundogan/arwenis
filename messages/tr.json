@@ -90,8 +90,36 @@
         "memory": "Hafıza",
         "usage": "Kullanım",
         "account": "Hesap",
+        "connectedAccounts": "Bağlı Hesaplar",
+        "connectedAccountsDesc": "Hesabına bağlı giriş yöntemleri.",
+        "connectedOn": "{date} tarihinde bağlandı",
         "soon": "Yakında",
         "soonDesc": "Bu bölüm yakında kullanıma açılacak."
+    },
+    "general": {
+        "subtitle": "Uygulama tercihleri.",
+        "language": "Dil",
+        "languageHint": "Şu an yalnızca Türkçe destekleniyor; daha fazla dil yakında eklenecek.",
+        "soonLang": "yakında",
+        "saved": "Tercih kaydedildi."
+    },
+    "data": {
+        "title": "Veri ve Gizlilik",
+        "subtitle": "Verilerini yönet ve gizliliğini kontrol et.",
+        "exportTitle": "Verilerimi dışa aktar",
+        "exportDesc": "Profilin, sohbetlerin ve hafıza kayıtların JSON dosyası olarak indirilir.",
+        "exportCta": "İndir (JSON)",
+        "clearTitle": "Tüm sohbetleri sil",
+        "clearDesc": "Tüm sohbet geçmişin kaldırılır.",
+        "clearCta": "Tümünü sil",
+        "clearConfirmTitle": "Tüm sohbetler silinsin mi?",
+        "clearConfirmDesc": "Tüm sohbet geçmişin kaldırılacak. Bu işlem geri alınamaz.",
+        "cleared": "Tüm sohbetler silindi.",
+        "clearMemoryTitle": "Tüm hafızayı sil",
+        "clearMemoryDesc": "Hakkında öğrenilen tüm hafıza kayıtları kaldırılır.",
+        "clearMemoryConfirmTitle": "Tüm hafıza silinsin mi?",
+        "clearMemoryConfirmDesc": "Hakkında hatırlanan her şey kaldırılacak. Bu işlem geri alınamaz.",
+        "memoryCleared": "Tüm hafıza silindi."
     },
     "sessions": {
         "title": "Son Oturumlar",
