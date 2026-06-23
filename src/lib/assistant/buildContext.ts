@@ -64,11 +64,12 @@ export const buildContext = (args: BuildContextArgs): ChatMessage[] => {
 
     if (args.noSourcesReply) {
         system +=
-            '\n\nÖNEMLİ: Bu soru için bilgi tabanında eşleşen KAYNAK BULUNAMADI. Yalnızca kullanıcının ' +
-            'KENDİSİ hakkındaki ("Kullanıcı bağlamı"ndan yanıtlanabilen) soruları yanıtla. Genel kültür, ' +
-            'kod yazımı, matematik, çeviri, tanım, yaratıcı içerik (şiir/metin) ve kaynak gerektiren diğer ' +
-            'HER istek için kendi genel bilgini KULLANMA; bunun yerine aynen şu cümleyi yaz ve başka hiçbir ' +
-            `şey ekleme: "${args.noSourcesReply}"`
+            '\n\nÖNEMLİ: Bu soru için bilgi tabanında eşleşen KAYNAK BULUNAMADI. Soru kullanıcının KENDİSİ ' +
+            'hakkındaysa ve yanıtı "Kullanıcı bağlamı"nda VARSA (ör. adı, yaşı, işi/çalıştığı yer, yaşadığı ' +
+            'yer, ilgi alanları, geçmiş konuşmaları), bu bilgiyi DOĞRUDAN ve kısaca yanıtla. Bunun dışında — ' +
+            'genel kültür, kod, matematik, çeviri, tanım, yaratıcı içerik (şiir/metin) ve kaynak gerektiren ' +
+            'her istek için — kendi genel bilgini KULLANMA; aynen şu cümleyi yaz ve başka hiçbir şey ekleme: ' +
+            `"${args.noSourcesReply}"`
     }
 
     return [

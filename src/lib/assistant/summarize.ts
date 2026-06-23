@@ -22,7 +22,7 @@ const safeParseJson = (text: string): any => {
 
 export const summarizeAndExtract = async (
     settings: AssistantConfig,
-    args: { priorSummary?: string | null; turns: ChatMessage[]; extractFacts: boolean },
+    args: { priorSummary?: string | null; turns: ChatMessage[]; extractFacts: boolean; existingFacts?: string[] },
 ): Promise<SummaryResult> => {
     const summaryTmpl = settings.prompts?.summaryPrompt
     if (!summaryTmpl) return { newFacts: [] }
@@ -36,8 +36,11 @@ export const summarizeAndExtract = async (
         : '{"summary": "<güncel kısa özet>"}'
     const system = `${parts.join('\n\n')}\n\nÇIKTIYI YALNIZCA şu JSON olarak ver (başka metin yok): ${jsonShape}`
 
+    const known = args.extractFacts && args.existingFacts?.length
+        ? `Kullanıcı hakkında ZATEN bilinen gerçekler (bunları tekrar ETME):\n${args.existingFacts.map((f) => `- ${f}`).join('\n')}\n\n`
+        : ''
     const transcript = args.turns.map((m) => `${m.role}: ${m.content}`).join('\n')
-    const userContent = `${args.priorSummary ? `Önceki özet:\n${args.priorSummary}\n\n` : ''}Konuşma:\n${transcript}`
+    const userContent = `${args.priorSummary ? `Önceki özet:\n${args.priorSummary}\n\n` : ''}${known}Konuşma:\n${transcript}`
 
     try {
         const llm = resolveLLM(settings)

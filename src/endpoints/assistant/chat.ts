@@ -154,7 +154,7 @@ export const chatEndpoint: Endpoint = {
                 try {
                     if (conv) send({ type: 'conversation', id: conv.id })
 
-                    const plan = await planQuery(settings, history, message)
+                    const plan = await planQuery(settings, history, message, userContext)
                     try {
                         citations = await retrieve(settings, plan)
                     } catch (err) {
