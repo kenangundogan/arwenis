@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import {
     Button,
+    Input,
+    Label,
     ScrollArea,
     AlertDialog,
     AlertDialogContent,
@@ -14,8 +16,8 @@ import {
     AlertDialogAction,
 } from 'eglador-ui-react'
 import { toast } from 'eglador-ui-react-toast'
-import { Download, Trash2, Brain } from 'lucide-react'
-import { exportData, clearConversations, clearMemory } from '../../_lib/api'
+import { Download, Trash2, Brain, UserX } from 'lucide-react'
+import { exportData, clearConversations, clearMemory, deleteAccount } from '../../_lib/api'
 import { useTranslations } from 'next-intl'
 
 type ConfirmAction = 'chats' | 'memory' | null
@@ -25,6 +27,23 @@ export default function DataSection() {
     const [exporting, setExporting] = useState(false)
     const [busy, setBusy] = useState(false)
     const [confirm, setConfirm] = useState<ConfirmAction>(null)
+    const [accountOpen, setAccountOpen] = useState(false)
+    const [typed, setTyped] = useState('')
+    const [deleting, setDeleting] = useState(false)
+
+    const word = t('data.deleteAccountWord')
+    const canDelete = typed.trim().toLocaleUpperCase('tr-TR') === word
+
+    async function onDeleteAccount() {
+        setDeleting(true)
+        try {
+            await deleteAccount()
+            window.location.href = '/login'
+        } catch (err) {
+            toast.error((err as Error).message || t('common.somethingWentWrong'))
+            setDeleting(false)
+        }
+    }
 
     async function onExport() {
         setExporting(true)
@@ -110,6 +129,22 @@ export default function DataSection() {
                         </Button>
                     </div>
                 </div>
+
+                <div className="mt-6">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-rose-600">{t('data.dangerZone')}</h4>
+                    <div className="mt-2 flex items-start justify-between gap-3 rounded-lg border border-rose-300 bg-rose-50 px-4 py-3">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 text-sm font-medium text-rose-700">
+                                <UserX className="size-4" />
+                                {t('data.deleteAccountTitle')}
+                            </div>
+                            <p className="mt-0.5 text-sm text-zinc-500">{t('data.deleteAccountDesc')}</p>
+                        </div>
+                        <Button variant="solid" size="sm" onClick={() => setAccountOpen(true)} className="shrink-0 bg-rose-600 text-white hover:bg-rose-700">
+                            {t('data.deleteAccountTitle')}
+                        </Button>
+                    </div>
+                </div>
             </ScrollArea>
 
             <AlertDialog open={confirm !== null} onOpenChange={(o) => !o && setConfirm(null)}>
@@ -122,6 +157,37 @@ export default function DataSection() {
                         <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                         <AlertDialogAction onClick={runConfirm} disabled={busy} className="bg-rose-600 text-white hover:bg-rose-700">
                             {t('data.clearCta')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                open={accountOpen}
+                onOpenChange={(o) => {
+                    setAccountOpen(o)
+                    if (!o) setTyped('')
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('data.deleteAccountConfirmTitle')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('data.deleteAccountDesc')}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">
+                        <li>{t('data.deleteAccountWarn1')}</li>
+                        <li>{t('data.deleteAccountWarn2')}</li>
+                        <li>{t('data.deleteAccountWarn3')}</li>
+                        <li>{t('data.deleteAccountWarn4')}</li>
+                    </ul>
+                    <div className="mt-3 flex flex-col gap-1.5">
+                        <Label htmlFor="del-confirm">{t('data.deleteAccountTypeHint', { word })}</Label>
+                        <Input id="del-confirm" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" placeholder={word} />
+                    </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={onDeleteAccount} disabled={!canDelete || deleting} className="bg-rose-600 text-white hover:bg-rose-700">
+                            {t('data.deleteAccountTitle')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
