@@ -210,3 +210,17 @@ export async function listSessions(): Promise<SessionLite[]> {
     const body = await res.json()
     return (body?.docs ?? []) as SessionLite[]
 }
+
+export interface AccountLite {
+    id: string
+    provider: string
+    providerAccountId?: string
+    createdAt: string
+}
+
+export async function listAccounts(): Promise<AccountLite[]> {
+    const res = await fetch('/api/member-accounts?sort=-createdAt&limit=20&depth=0')
+    if (!res.ok) return []
+    const body = await res.json()
+    return (body?.docs ?? []) as AccountLite[]
+}

@@ -90,6 +90,9 @@
         "memory": "Hafıza",
         "usage": "Kullanım",
         "account": "Hesap",
+        "connectedAccounts": "Bağlı Hesaplar",
+        "connectedAccountsDesc": "Hesabına bağlı giriş yöntemleri.",
+        "connectedOn": "{date} tarihinde bağlandı",
         "soon": "Yakında",
         "soonDesc": "Bu bölüm yakında kullanıma açılacak."
     },
