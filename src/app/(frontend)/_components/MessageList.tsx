@@ -7,7 +7,7 @@ export default function MessageList({ messages }: { messages: ChatMessage[] }) {
     return (
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6">
             {messages.map((m, i) => (
-                <MessageBubble key={m.id ?? i} message={m} />
+                <MessageBubble key={m.localId ?? m.id ?? i} message={m} />
             ))}
         </div>
     )

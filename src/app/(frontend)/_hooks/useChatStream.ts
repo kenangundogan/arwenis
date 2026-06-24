@@ -6,6 +6,7 @@ import { readSSE, type Citation } from '../_lib/sse'
 
 export interface ChatMessage {
     id?: string
+    localId?: string
     role: 'user' | 'assistant'
     content: string
     citations?: Citation[]
@@ -33,8 +34,11 @@ export function useChatStream({ initialConversationId, onConversationCreated }: 
     const [streaming, setStreaming] = useState(false)
     const conversationIdRef = useRef<string | undefined>(initialConversationId)
     const abortRef = useRef<AbortController | null>(null)
+    const localIdRef = useRef(0)
 
-    const setHistory = useCallback((msgs: ChatMessage[]) => setMessages(msgs), [])
+    const setHistory = useCallback((msgs: ChatMessage[]) => {
+        setMessages(msgs.map((m) => ({ ...m, localId: m.localId ?? m.id ?? `m${++localIdRef.current}` })))
+    }, [])
 
     const stop = useCallback(() => abortRef.current?.abort(), [])
 
@@ -45,8 +49,8 @@ export function useChatStream({ initialConversationId, onConversationCreated }: 
             setStreaming(true)
             setMessages((m) => [
                 ...m,
-                { role: 'user', content },
-                { role: 'assistant', content: '', pending: true },
+                { localId: `m${++localIdRef.current}`, role: 'user', content },
+                { localId: `m${++localIdRef.current}`, role: 'assistant', content: '', pending: true },
             ])
 
             const ac = new AbortController()
