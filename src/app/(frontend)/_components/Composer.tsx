@@ -71,7 +71,7 @@ export default function Composer({ onSend, onStop, streaming }: Props) {
                                 size="sm"
                                 shape="circle"
                                 onClick={onStop}
-                                aria-label="Durdur"
+                                aria-label={t('chat.stop')}
                                 icon={<Square />}
                             />
                         ) : (
@@ -82,7 +82,7 @@ export default function Composer({ onSend, onStop, streaming }: Props) {
                                 shape="circle"
                                 onClick={submit}
                                 disabled={!text.trim()}
-                                aria-label="Gönder"
+                                aria-label={t('chat.send')}
                                 icon={<ArrowUp />}
                             />
                         )}

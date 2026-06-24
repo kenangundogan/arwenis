@@ -61,6 +61,8 @@
         "newChat": "Yeni sohbet",
         "placeholder": "Bir mesaj yazın…",
         "scrollToBottom": "En alta in",
+        "send": "Gönder",
+        "stop": "Durdur",
         "disclaimer": "Arwenis yapay zekâdır ve hatalar yapabilir. Lütfen yanıtlarınızı iki kez kontrol edin.",
         "rename": "Yeniden adlandır",
         "delete": "Sil",
