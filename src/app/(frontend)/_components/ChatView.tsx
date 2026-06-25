@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Typewriter } from 'eglador-ui-react-typewriter'
 import { useTranslations } from 'next-intl'
@@ -34,12 +34,13 @@ export default function ChatView({ conversationId, welcome, suggestions, userNam
         setGreeting(userName ? t('chat.greetingWithName', { greeting: g, name: userName }) : g)
         setToday(t('chat.todayIs', { date: new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) }))
     }, [userName, t])
-    const { messages, streaming, send, stop, setHistory } = useChatStream({
+    const onConversationCreated = useCallback((id: string) => {
+        window.history.replaceState(null, '', `/chat/${id}`)
+        window.dispatchEvent(new CustomEvent('arwenis:conversations-changed'))
+    }, [])
+    const { messages, streaming, send, stop, regenerate, switchVariant, setHistory } = useChatStream({
         initialConversationId: conversationId,
-        onConversationCreated: (id) => {
-            window.history.replaceState(null, '', `/chat/${id}`)
-            window.dispatchEvent(new CustomEvent('arwenis:conversations-changed'))
-        },
+        onConversationCreated,
     })
 
     useEffect(() => {
@@ -48,12 +49,22 @@ export default function ChatView({ conversationId, welcome, suggestions, userNam
         getMessages(conversationId).then((docs) => {
             if (!active) return
             setHistory(
-                docs.map((d) => ({
-                    id: d.id,
-                    role: d.role,
-                    content: d.content,
-                    citations: d.citations ?? undefined,
-                })),
+                docs.map((d) => {
+                    const variants =
+                        d.variants && d.variants.length > 0
+                            ? d.variants.map((v) => ({ content: v.content, citations: v.citations ?? undefined }))
+                            : undefined
+                    const idx = variants ? (d.activeVariant ?? variants.length - 1) : 0
+                    const active = variants?.[idx]
+                    return {
+                        id: d.id,
+                        role: d.role,
+                        content: active ? active.content : d.content,
+                        citations: active ? active.citations : (d.citations ?? undefined),
+                        variants,
+                        activeVariant: variants ? idx : undefined,
+                    }
+                }),
             )
         })
         return () => {
@@ -123,7 +134,11 @@ export default function ChatView({ conversationId, welcome, suggestions, userNam
                         )}
                     </div>
                 ) : (
-                    <MessageList messages={messages} />
+                    <MessageList
+                        messages={messages}
+                        onRegenerate={streaming ? undefined : regenerate}
+                        onSwitchVariant={streaming ? undefined : switchVariant}
+                    />
                 )}
             </div>
             <div className="relative">

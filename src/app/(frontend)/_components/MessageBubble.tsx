@@ -20,7 +20,15 @@ function Thinking() {
     )
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({
+    message,
+    onRegenerate,
+    onSwitchVariant,
+}: {
+    message: ChatMessage
+    onRegenerate?: () => void
+    onSwitchVariant?: (localId: string, dir: 1 | -1) => void
+}) {
     if (message.role === 'user') {
         return (
             <div className="flex justify-end">
@@ -33,14 +41,22 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
     return (
         <div className="flex gap-3">
-            <div className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-fullbg-(--brand) text-[11px] font-semibold text-white">
+            <div className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-(--brand) text-[11px] font-semibold text-white">
                 AI
             </div>
             <div className="min-w-0 flex-1 text-sm text-zinc-800">
                 {message.content ? <Markdown content={message.content} citations={message.citations} /> : message.pending ? <Thinking /> : null}
                 <SourceChips citations={message.citations} />
                 {message.content && !message.pending && (
-                    <MessageActions messageId={message.id} content={message.content} />
+                    <MessageActions
+                        messageId={message.id}
+                        content={message.content}
+                        onRegenerate={onRegenerate}
+                        variantIndex={message.variants && message.variants.length > 1 ? (message.activeVariant ?? message.variants.length - 1) : undefined}
+                        variantTotal={message.variants && message.variants.length > 1 ? message.variants.length : undefined}
+                        onPrev={onSwitchVariant && message.localId ? () => onSwitchVariant(message.localId!, -1) : undefined}
+                        onNext={onSwitchVariant && message.localId ? () => onSwitchVariant(message.localId!, 1) : undefined}
+                    />
                 )}
             </div>
         </div>

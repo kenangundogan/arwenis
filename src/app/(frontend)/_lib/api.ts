@@ -18,6 +18,8 @@ export interface MessageLite {
     role: 'user' | 'assistant'
     content: string
     citations?: Citation[] | null
+    variants?: { content: string; citations?: Citation[] | null }[] | null
+    activeVariant?: number | null
 }
 
 const parseError = async (res: Response): Promise<Error> => {
@@ -144,6 +146,14 @@ export async function sendFeedback(messageId: string, feedback: 'up' | 'down'): 
         method: 'PATCH',
         headers: JSON_HEADERS,
         body: JSON.stringify({ feedback }),
+    }).catch(() => {})
+}
+
+export async function setActiveVariant(messageId: string, index: number): Promise<void> {
+    await fetch(`/api/messages/${messageId}`, {
+        method: 'PATCH',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ activeVariant: index }),
     }).catch(() => {})
 }
 

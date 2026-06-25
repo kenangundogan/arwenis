@@ -14,6 +14,9 @@ import {
     getOrCreateConversation,
     loadHistory,
     persistTurn,
+    prepareRegenerate,
+    appendAssistantVariant,
+    persistRegeneratedAssistant,
     generateTitle,
     loadMemories,
     buildUserContext,
@@ -46,15 +49,16 @@ export const chatEndpoint: Endpoint = {
     method: 'post',
     handler: async (req) => {
         assertSameOrigin(req)
-        let body: { message?: string; conversationId?: string; history?: unknown }
+        let body: { message?: string; conversationId?: string; history?: unknown; regenerate?: boolean }
         try {
             body = (await req.json?.()) ?? {}
         } catch {
             throw new APIError('Geçersiz JSON gövdesi.', 400)
         }
 
-        const message = (body.message ?? '').toString().trim().slice(0, MESSAGE_CHAR_CAP)
-        if (!message) throw new APIError('`message` alanı gereklidir.', 400)
+        const isRegenerate = body.regenerate === true
+        let message = (body.message ?? '').toString().trim().slice(0, MESSAGE_CHAR_CAP)
+        if (!isRegenerate && !message) throw new APIError('`message` alanı gereklidir.', 400)
 
         const member = await resolveMember(req)
         if (!member) throw new APIError('Bu işlem için giriş yapmanız gerekir.', 401)
@@ -90,17 +94,29 @@ export const chatEndpoint: Endpoint = {
             ? await getOrCreateConversation(req.payload, memberId, requestedConvId)
             : null
 
-        if (persistEnabled && requestedConvId && conv) {
+        if (isRegenerate && !conv) throw new APIError('Yeniden üretmek için kayıtlı bir konuşma gerekir.', 400)
+
+        if (!isRegenerate && persistEnabled && requestedConvId && conv) {
             const maxMsgs = settings.limits?.maxConversationMessages ?? 0
             if (maxMsgs > 0 && (conv.messageCount ?? 0) >= maxMsgs) {
                 throw new APIError('Bu konuşma mesaj sınırına ulaştı. Lütfen yeni bir konuşma başlatın.', 409)
             }
         }
 
-        const isFirstTurn = !!conv && (conv.messageCount ?? 0) === 0
-        const history: ChatMessage[] = conv
-            ? await loadHistory(req.payload, String(conv.id), historyWindow)
-            : sanitizeHistory(body.history, historyWindow)
+        const isFirstTurn = !isRegenerate && !!conv && (conv.messageCount ?? 0) === 0
+        let regenAssistantId: string | null = null
+        let history: ChatMessage[]
+        if (isRegenerate && conv) {
+            const prep = await prepareRegenerate(req.payload, String(conv.id), historyWindow)
+            if (!prep) throw new APIError('Yeniden üretilecek bir yanıt bulunamadı.', 400)
+            message = prep.userText.slice(0, MESSAGE_CHAR_CAP)
+            history = prep.history
+            regenAssistantId = prep.assistantMessageId
+        } else {
+            history = conv
+                ? await loadHistory(req.payload, String(conv.id), historyWindow)
+                : sanitizeHistory(body.history, historyWindow)
+        }
 
         const crossConv = settings.memory?.crossConversation !== false
         let userContext = ''
@@ -125,15 +141,34 @@ export const chatEndpoint: Endpoint = {
             finalized = true
             try {
                 if (persistEnabled && conv) {
-                    assistantMessageId = await persistTurn(req.payload, {
-                        conv,
-                        userText: message,
-                        assistantText: full,
-                        citations: usedCitations,
-                        tokensIn: usage?.inputTokens,
-                        tokensOut: usage?.outputTokens,
-                    })
-                    if (isFirstTurn) await generateTitle(req.payload, settings, conv, message)
+                    if (isRegenerate) {
+                        if (regenAssistantId) {
+                            const r = await appendAssistantVariant(req.payload, conv, regenAssistantId, {
+                                assistantText: full,
+                                citations: usedCitations,
+                                tokensIn: usage?.inputTokens,
+                                tokensOut: usage?.outputTokens,
+                            })
+                            assistantMessageId = r.messageId
+                        } else {
+                            assistantMessageId = await persistRegeneratedAssistant(req.payload, conv, {
+                                assistantText: full,
+                                citations: usedCitations,
+                                tokensIn: usage?.inputTokens,
+                                tokensOut: usage?.outputTokens,
+                            })
+                        }
+                    } else {
+                        assistantMessageId = await persistTurn(req.payload, {
+                            conv,
+                            userText: message,
+                            assistantText: full,
+                            citations: usedCitations,
+                            tokensIn: usage?.inputTokens,
+                            tokensOut: usage?.outputTokens,
+                        })
+                        if (isFirstTurn) await generateTitle(req.payload, settings, conv, message)
+                    }
                 }
             } catch (err) {
                 req.payload.logger.error({ err }, '[assistant] persist failed')
@@ -212,7 +247,7 @@ export const chatEndpoint: Endpoint = {
 
                     await finalize()
                     send({ type: 'done', usage, messageId: assistantMessageId })
-                    if (persistEnabled && conv) {
+                    if (persistEnabled && conv && !isRegenerate) {
                         await req.payload.jobs.queue({
                             task: 'summarizeTurn',
                             input: { conversationId: String(conv.id) },
