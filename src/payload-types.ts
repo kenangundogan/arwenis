@@ -679,6 +679,28 @@ export interface Message {
     | null;
   tokensIn?: number | null;
   tokensOut?: number | null;
+  /**
+   * Yeniden üretilen yanıt sürümleri. İlki orijinal yanıttır; aktif sürüm "content" alanına yansıtılır.
+   */
+  variants?:
+    | {
+        content: string;
+        citations?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Gösterilen sürümün dizini (0 tabanlı).
+   */
+  activeVariant?: number | null;
   feedback?: ('up' | 'down') | null;
   updatedAt: string;
   createdAt: string;
@@ -1406,6 +1428,14 @@ export interface MessagesSelect<T extends boolean = true> {
   citations?: T;
   tokensIn?: T;
   tokensOut?: T;
+  variants?:
+    | T
+    | {
+        content?: T;
+        citations?: T;
+        id?: T;
+      };
+  activeVariant?: T;
   feedback?: T;
   updatedAt?: T;
   createdAt?: T;

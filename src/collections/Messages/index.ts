@@ -73,6 +73,27 @@ export const Messages: CollectionConfig = {
             ],
         },
         {
+            name: 'variants',
+            label: 'Sürümler',
+            type: 'array',
+            access: { update: notMemberField },
+            admin: {
+                readOnly: true,
+                description: 'Yeniden üretilen yanıt sürümleri. İlki orijinal yanıttır; aktif sürüm "content" alanına yansıtılır.',
+            },
+            fields: [
+                { name: 'content', label: 'İçerik', type: 'textarea', required: true },
+                { name: 'citations', label: 'Kaynaklar', type: 'json' },
+            ],
+        },
+        {
+            name: 'activeVariant',
+            label: 'Aktif Sürüm',
+            type: 'number',
+            defaultValue: 0,
+            admin: { position: 'sidebar', description: 'Gösterilen sürümün dizini (0 tabanlı).' },
+        },
+        {
             name: 'feedback',
             label: 'Geri Bildirim',
             type: 'select',

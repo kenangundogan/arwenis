@@ -9,6 +9,13 @@ import { getLLMAdapter, collectText } from './llm'
 const relId = (v: unknown): string | undefined =>
     typeof v === 'string' ? v : v && typeof v === 'object' && 'id' in v ? String((v as { id: unknown }).id) : undefined
 
+const activeContent = (m: { content: string; variants?: unknown; activeVariant?: number | null }): string => {
+    const variants = Array.isArray(m.variants) ? (m.variants as { content?: string }[]) : null
+    if (!variants || variants.length === 0) return m.content
+    const idx = m.activeVariant ?? variants.length - 1
+    return variants[idx]?.content ?? m.content
+}
+
 export const getOrCreateConversation = async (
     payload: Payload,
     memberId: string,
@@ -60,7 +67,7 @@ export const loadHistory = async (
         overrideAccess: true,
     })
     return res.docs
-        .map((m) => ({ role: m.role as ChatMessage['role'], content: m.content }))
+        .map((m) => ({ role: m.role as ChatMessage['role'], content: activeContent(m) }))
         .reverse()
 }
 
@@ -108,6 +115,114 @@ export const persistTurn = async (
         overrideAccess: true,
     })
 
+    return String(assistant.id)
+}
+
+export const prepareRegenerate = async (
+    payload: Payload,
+    conversationId: string,
+    windowSize: number,
+): Promise<{ userText: string; history: ChatMessage[]; assistantMessageId: string | null } | null> => {
+    const res = await payload.find({
+        collection: 'messages',
+        where: { conversation: { equals: conversationId } },
+        sort: 'createdAt',
+        limit: 1000,
+        depth: 0,
+        overrideAccess: true,
+    })
+    const docs = res.docs
+    let lastUserIdx = -1
+    for (let i = docs.length - 1; i >= 0; i--) {
+        if (docs[i].role === 'user') {
+            lastUserIdx = i
+            break
+        }
+    }
+    if (lastUserIdx < 0) return null
+
+    const trailingAssistant = docs.slice(lastUserIdx + 1).find((m) => m.role === 'assistant')
+
+    const history = docs
+        .slice(0, lastUserIdx)
+        .map((m) => ({ role: m.role as ChatMessage['role'], content: activeContent(m) }))
+        .filter((m) => m.content && m.content.trim().length > 0)
+    return {
+        userText: docs[lastUserIdx].content,
+        history: windowSize > 0 ? history.slice(-windowSize) : history,
+        assistantMessageId: trailingAssistant ? String(trailingAssistant.id) : null,
+    }
+}
+
+const bumpConversation = async (payload: Payload, conv: Conversation, addTokens: number): Promise<void> => {
+    await payload.update({
+        collection: 'conversations',
+        id: conv.id,
+        data: {
+            tokensTotal: (conv.tokensTotal ?? 0) + addTokens,
+            lastMessageAt: new Date().toISOString(),
+        },
+        overrideAccess: true,
+    })
+}
+
+export const appendAssistantVariant = async (
+    payload: Payload,
+    conv: Conversation,
+    messageId: string,
+    args: { assistantText: string; citations: UsedCitation[]; tokensIn?: number; tokensOut?: number },
+): Promise<{ messageId: string; variantIndex: number; variantTotal: number }> => {
+    const doc = await payload.findByID({ collection: 'messages', id: messageId, depth: 0, overrideAccess: true })
+    const existing = Array.isArray(doc.variants) ? doc.variants : []
+    const seeded =
+        existing.length > 0
+            ? existing.map((v) => ({ content: v.content, citations: v.citations ?? null }))
+            : [{ content: doc.content, citations: doc.citations ?? null }]
+    const next = [
+        ...seeded,
+        { content: args.assistantText || '(boş yanıt)', citations: args.citations.length ? args.citations : null },
+    ]
+    const activeVariant = next.length - 1
+
+    await payload.update({
+        collection: 'messages',
+        id: messageId,
+        data: {
+            variants: next,
+            activeVariant,
+            content: next[activeVariant].content,
+            citations: next[activeVariant].citations ?? undefined,
+            tokensIn: args.tokensIn,
+            tokensOut: args.tokensOut,
+        },
+        overrideAccess: true,
+    })
+
+    await bumpConversation(payload, conv, (args.tokensIn ?? 0) + (args.tokensOut ?? 0))
+    return { messageId, variantIndex: activeVariant, variantTotal: next.length }
+}
+
+export const persistRegeneratedAssistant = async (
+    payload: Payload,
+    conv: Conversation,
+    args: { assistantText: string; citations: UsedCitation[]; tokensIn?: number; tokensOut?: number },
+): Promise<string | undefined> => {
+    const member = relId(conv.member)
+    const assistant = await payload.create({
+        collection: 'messages',
+        data: {
+            conversation: conv.id,
+            member,
+            role: 'assistant',
+            content: args.assistantText || '(boş yanıt)',
+            citations: args.citations.length ? args.citations : undefined,
+            tokensIn: args.tokensIn,
+            tokensOut: args.tokensOut,
+        },
+        overrideAccess: true,
+    })
+
+    await bumpConversation(payload, conv, (args.tokensIn ?? 0) + (args.tokensOut ?? 0))
     return String(assistant.id)
 }
 
