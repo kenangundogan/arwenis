@@ -29,7 +29,18 @@ export default function CitationPill({ citation }: { citation: Citation }) {
                     <span className="truncate">{info.brand}</span>
                 </a>
             </HoverCardTrigger>
-            <HoverCardContent className="w-80 rounded-xl border border-zinc-200 bg-white p-3 text-left shadow-lg">
+            <HoverCardContent className="w-80 overflow-hidden rounded-xl border border-zinc-200 bg-white p-3 text-left shadow-lg">
+                {citation.image && (
+                    <img
+                        src={citation.image}
+                        alt=""
+                        loading="lazy"
+                        className="mb-2 h-32 w-full rounded-lg object-cover"
+                        onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                        }}
+                    />
+                )}
                 <div className="flex items-center gap-1.5 text-xs text-zinc-500">
                     <img src={info.favicon} alt="" width={16} height={16} loading="lazy" className="size-4 rounded-[3px]" />
                     <span className="font-medium text-zinc-700">{info.brand}</span>

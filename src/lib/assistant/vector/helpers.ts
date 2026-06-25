@@ -19,6 +19,7 @@ export const toCitation = (
     if (!text) return null
 
     const url = safeHttpUrl(data.url ?? data.source ?? data.link ?? data.href)
+    const image = safeHttpUrl(data.image ?? data.thumbnail ?? data.img)
     const titleRaw = data.title ?? data.name ?? data.heading
     const title = typeof titleRaw === 'string' ? titleRaw : undefined
 
@@ -43,6 +44,7 @@ export const toCitation = (
         text,
         url,
         title,
+        image,
         publishedAt,
         facets: Object.keys(facets).length > 0 ? facets : undefined,
     }
