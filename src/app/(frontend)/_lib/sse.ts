@@ -10,6 +10,7 @@ export interface Citation {
     index?: number
     title?: string
     url?: string
+    image?: string
     score?: number
     snippet?: string
     publishedAt?: string

@@ -49,6 +49,10 @@ export default buildConfig({
             defaultTimezone: 'UTC',
         },
         components: {
+            graphics: {
+                Logo: './components/admin/graphics/Logo.tsx#default',
+                Icon: './components/admin/graphics/Icon.tsx#default',
+            },
         },
         dashboard: {
             widgets: [

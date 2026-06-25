@@ -83,6 +83,7 @@ export type Citation = {
     text: string
     url?: string
     title?: string
+    image?: string
     publishedAt?: string
     facets?: Record<string, string>
 }
