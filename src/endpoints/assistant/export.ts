@@ -29,10 +29,12 @@ export const exportEndpoint: Endpoint = {
             memory: (mems.docs as any[]).map((x) => ({ text: x.text, createdAt: x.createdAt })),
         }
 
+        const filename = `arwenis-export-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+
         return new Response(JSON.stringify(data, null, 2), {
             headers: {
                 'Content-Type': 'application/json; charset=utf-8',
-                'Content-Disposition': 'attachment; filename="arwenis-verilerim.json"',
+                'Content-Disposition': `attachment; filename="${filename}"`,
             },
         })
     },

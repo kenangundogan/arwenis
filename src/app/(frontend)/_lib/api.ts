@@ -122,11 +122,13 @@ export async function clearConversations(): Promise<void> {
 export async function exportData(): Promise<void> {
     const res = await fetch('/api/assistant/export')
     if (!res.ok) throw await parseError(res)
+    const fromHeader = res.headers.get('content-disposition')?.match(/filename="?([^"]+)"?/i)?.[1]
+    const filename = fromHeader || `arwenis-export-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'arwenis-verilerim.json'
+    a.download = filename
     document.body.appendChild(a)
     a.click()
     a.remove()
