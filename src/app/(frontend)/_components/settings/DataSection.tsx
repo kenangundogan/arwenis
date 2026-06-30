@@ -138,7 +138,7 @@ export default function DataSection() {
                             <p className="mt-0.5 text-sm text-zinc-500">{t('data.deleteAccountDesc')}</p>
                         </div>
                         <Button variant="solid" size="sm" onClick={() => setAccountOpen(true)}>
-                            {t('data.deleteAccountTitle')}
+                            {t('data.clearCta')}
                         </Button>
                     </div>
                 </div>

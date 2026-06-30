@@ -10,6 +10,14 @@ export const safeHttpUrl = (value: unknown): string | undefined => {
     return undefined
 }
 
+// images: { "16x9": [{name,w,h,url}…], "1x1": […] } | null — son eleman en büyük.
+const pickImageUrl = (images: unknown): string | undefined => {
+    if (!images || typeof images !== 'object') return undefined
+    const obj = images as Record<string, Array<{ url?: unknown }> | undefined>
+    const arr = obj['16x9']?.length ? obj['16x9'] : obj['1x1']?.length ? obj['1x1'] : null
+    return arr ? safeHttpUrl(arr[arr.length - 1]?.url) : undefined
+}
+
 export const toCitation = (
     payload: Record<string, any> | undefined | null,
     opts: { id?: string; score: number; textKey: string; facetKeys?: string[]; recencyKey?: string },
@@ -19,7 +27,9 @@ export const toCitation = (
     if (!text) return null
 
     const url = safeHttpUrl(data.url ?? data.source ?? data.link ?? data.href)
-    const image = safeHttpUrl(data.image ?? data.thumbnail ?? data.img)
+    const image = pickImageUrl(data.images)
+    const description =
+        typeof data.description === 'string' && data.description.trim() ? data.description : undefined
     const titleRaw = data.title ?? data.name ?? data.heading
     const title = typeof titleRaw === 'string' ? titleRaw : undefined
 
@@ -42,6 +52,7 @@ export const toCitation = (
         id: opts.id,
         score: opts.score,
         text,
+        description,
         url,
         title,
         image,

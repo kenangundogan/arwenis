@@ -81,6 +81,7 @@ export type Citation = {
     id?: string
     score: number
     text: string
+    description?: string
     url?: string
     title?: string
     image?: string

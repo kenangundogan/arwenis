@@ -28,7 +28,8 @@ export const extractUsedCitations = (text: string, citations: Citation[]): UsedC
         .sort((a, b) => a - b)
         .map((n) => {
             const c = citations[n - 1]
-            const snippet = typeof c.text === 'string' ? c.text.replace(/\s+/g, ' ').trim().slice(0, 180) : ''
+            const snippetSrc = c.description && c.description.trim() ? c.description : typeof c.text === 'string' ? c.text : ''
+            const snippet = snippetSrc.replace(/\s+/g, ' ').trim().slice(0, 180)
             return { n, title: c.title, url: c.url, image: c.image, score: c.score, snippet: snippet || undefined, publishedAt: c.publishedAt }
         })
 }
