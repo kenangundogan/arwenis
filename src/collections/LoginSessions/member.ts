@@ -1,7 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { canDelete } from '@/access'
-import { memberOwnedRead } from '@/access/collection/memberOwned'
+import { memberOwnedRead, memberOwnedDelete } from '@/access/collection/memberOwned'
 import { sessionFields } from './sessionFields'
 
 export const MemberLoginSessions: CollectionConfig = {
@@ -14,7 +13,7 @@ export const MemberLoginSessions: CollectionConfig = {
         create: () => false,
         read: memberOwnedRead('member-login-sessions'),
         update: () => false,
-        delete: canDelete('member-login-sessions'),
+        delete: memberOwnedDelete('member-login-sessions'),
     },
     admin: {
         group: 'Güvenlik',

@@ -16,11 +16,11 @@ import {
     AlertDialogAction,
 } from 'eglador-ui-react'
 import { toast } from 'eglador-ui-react-toast'
-import { Download, Trash2, Brain, UserX } from 'lucide-react'
-import { exportData, clearConversations, clearMemory, deleteAccount } from '../../_lib/api'
+import { Download, Trash2, Brain, UserX, Folder, History } from 'lucide-react'
+import { exportData, clearConversations, clearMemory, deleteAccount, clearFolders, clearSessions } from '../../_lib/api'
 import { useTranslations } from 'next-intl'
 
-type ConfirmAction = 'chats' | 'memory' | null
+type ConfirmAction = 'chats' | 'folders' | 'memory' | 'sessions' | null
 
 export default function DataSection() {
     const t = useTranslations()
@@ -64,6 +64,13 @@ export default function DataSection() {
                 await clearConversations()
                 window.dispatchEvent(new CustomEvent('arwenis:conversations-changed'))
                 toast.success(t('data.cleared'))
+            } else if (confirm === 'folders') {
+                await clearFolders()
+                window.dispatchEvent(new CustomEvent('arwenis:conversations-changed'))
+                toast.success(t('data.foldersCleared'))
+            } else if (confirm === 'sessions') {
+                await clearSessions()
+                toast.success(t('data.sessionsCleared'))
             } else {
                 await clearMemory()
                 toast.success(t('data.memoryCleared'))
@@ -79,7 +86,11 @@ export default function DataSection() {
     const dialog =
         confirm === 'memory'
             ? { title: t('data.clearMemoryConfirmTitle'), desc: t('data.clearMemoryConfirmDesc') }
-            : { title: t('data.clearConfirmTitle'), desc: t('data.clearConfirmDesc') }
+            : confirm === 'folders'
+              ? { title: t('data.clearFoldersConfirmTitle'), desc: t('data.clearFoldersConfirmDesc') }
+              : confirm === 'sessions'
+                ? { title: t('data.clearSessionsConfirmTitle'), desc: t('data.clearSessionsConfirmDesc') }
+                : { title: t('data.clearConfirmTitle'), desc: t('data.clearConfirmDesc') }
 
     return (
         <div className="flex h-full flex-col">
@@ -119,12 +130,38 @@ export default function DataSection() {
                     <div className="flex items-start justify-between gap-3 rounded-lg border border-zinc-200 px-4 py-3">
                         <div className="min-w-0">
                             <div className="flex items-center gap-2 text-sm font-medium text-zinc-800">
+                                <Folder className="size-4" />
+                                {t('data.clearFoldersTitle')}
+                            </div>
+                            <p className="mt-0.5 text-sm text-zinc-500">{t('data.clearFoldersDesc')}</p>
+                        </div>
+                        <Button variant="solid" size="sm" onClick={() => setConfirm('folders')}>
+                            {t('data.clearCta')}
+                        </Button>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-3 rounded-lg border border-zinc-200 px-4 py-3">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 text-sm font-medium text-zinc-800">
                                 <Brain className="size-4" />
                                 {t('data.clearMemoryTitle')}
                             </div>
                             <p className="mt-0.5 text-sm text-zinc-500">{t('data.clearMemoryDesc')}</p>
                         </div>
                         <Button variant="solid" size="sm" onClick={() => setConfirm('memory')}>
+                            {t('data.clearCta')}
+                        </Button>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-3 rounded-lg border border-zinc-200 px-4 py-3">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 text-sm font-medium text-zinc-800">
+                                <History className="size-4" />
+                                {t('data.clearSessionsTitle')}
+                            </div>
+                            <p className="mt-0.5 text-sm text-zinc-500">{t('data.clearSessionsDesc')}</p>
+                        </div>
+                        <Button variant="solid" size="sm" onClick={() => setConfirm('sessions')}>
                             {t('data.clearCta')}
                         </Button>
                     </div>
