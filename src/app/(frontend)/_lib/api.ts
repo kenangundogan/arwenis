@@ -180,6 +180,11 @@ export async function deleteFolder(id: string): Promise<void> {
     await fetch(`/api/folders/${id}`, { method: 'DELETE' }).catch(() => {})
 }
 
+export async function clearFolders(): Promise<void> {
+    const items = await listFolders()
+    await Promise.all(items.map((f) => deleteFolder(f.id)))
+}
+
 export async function moveConversation(id: string, folder: string | null): Promise<void> {
     await fetch(`/api/conversations/${id}`, {
         method: 'PATCH',
@@ -248,6 +253,19 @@ export async function listSessions(): Promise<SessionLite[]> {
     if (!res.ok) return []
     const body = await res.json()
     return (body?.docs ?? []) as SessionLite[]
+}
+
+export async function deleteSession(id: string): Promise<void> {
+    await fetch(`/api/member-login-sessions/${id}`, { method: 'DELETE' }).catch(() => {})
+}
+
+export async function clearSessions(): Promise<void> {
+    // limit=0 → Payload returns all matching docs (not capped at the listSessions limit).
+    const res = await fetch('/api/member-login-sessions?limit=0&depth=0')
+    if (!res.ok) return
+    const body = await res.json()
+    const ids = ((body?.docs ?? []) as SessionLite[]).map((s) => s.id)
+    await Promise.all(ids.map((id) => deleteSession(id)))
 }
 
 export interface AccountLite {
