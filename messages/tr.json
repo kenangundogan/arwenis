@@ -112,7 +112,7 @@
         "subtitle": "Verilerini yönet ve gizliliğini kontrol et.",
         "exportTitle": "Verilerimi dışa aktar",
         "exportDesc": "Profilin, sohbetlerin ve hafıza kayıtların JSON dosyası olarak indirilir.",
-        "exportCta": "İndir (JSON)",
+        "exportCta": "İndir",
         "clearTitle": "Tüm sohbetleri sil",
         "clearDesc": "Tüm sohbet geçmişin kaldırılır.",
         "clearCta": "Sil",
