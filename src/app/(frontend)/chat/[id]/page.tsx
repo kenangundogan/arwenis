@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getCurrentMember } from '@/utilities/getCurrentMember'
-import { getWelcome } from '../../_lib/persona'
+import { getWelcome, getMaxMessageChars } from '../../_lib/persona'
 import ChatView from '../../_components/ChatView'
 
 export default async function ConversationPage({ params }: { params: Promise<{ id: string }> }) {
@@ -22,6 +22,14 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
     })
     if (found.docs.length === 0) notFound()
 
-    const { welcome, suggestions } = await getWelcome()
-    return <ChatView conversationId={id} welcome={welcome} suggestions={suggestions} userName={member.firstName ?? undefined} />
+    const [{ welcome, suggestions }, maxMessageChars] = await Promise.all([getWelcome(), getMaxMessageChars()])
+    return (
+        <ChatView
+            conversationId={id}
+            welcome={welcome}
+            suggestions={suggestions}
+            userName={member.firstName ?? undefined}
+            maxMessageChars={maxMessageChars}
+        />
+    )
 }

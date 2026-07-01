@@ -55,6 +55,7 @@ export type AssistantConfig = {
         perIpRateLimit?: number | null
         maxConversationMessages?: number | null
         maxConversationsPerUser?: number | null
+        maxMessageChars?: number | null
     } | null
     persona?: string | null
     welcomeMessage?: string | null

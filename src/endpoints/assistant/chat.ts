@@ -25,7 +25,7 @@ import {
 import { checkDailyCap, incrementUsage, estimateTokens } from '@/lib/assistant/usage'
 import { checkRateLimit, getClientIp } from '@/lib/assistant/rateLimit'
 
-const MESSAGE_CHAR_CAP = 4000
+const DEFAULT_MESSAGE_CHAR_CAP = 4000
 const HISTORY_CHAR_CAP = 8000
 const MEMBER_HOURLY_CAP = 100
 
@@ -57,7 +57,7 @@ export const chatEndpoint: Endpoint = {
         }
 
         const isRegenerate = body.regenerate === true
-        let message = (body.message ?? '').toString().trim().slice(0, MESSAGE_CHAR_CAP)
+        let message = (body.message ?? '').toString().trim()
         if (!isRegenerate && !message) throw new APIError('`message` alanı gereklidir.', 400)
 
         const member = await resolveMember(req)
@@ -65,6 +65,10 @@ export const chatEndpoint: Endpoint = {
         const memberId = String(member.id)
 
         const settings = await loadAssistantConfig(req.payload)
+
+        const maxMessageChars = settings.limits?.maxMessageChars ?? DEFAULT_MESSAGE_CHAR_CAP
+        const capMessage = (s: string): string => (maxMessageChars > 0 ? s.slice(0, maxMessageChars) : s)
+        message = capMessage(message)
 
         const rateLimit = settings.limits?.perIpRateLimit ?? 0
         if (rateLimit > 0 && !checkRateLimit(`chat:${getClientIp(req.headers)}`, rateLimit, 60_000)) {
@@ -109,7 +113,7 @@ export const chatEndpoint: Endpoint = {
         if (isRegenerate && conv) {
             const prep = await prepareRegenerate(req.payload, String(conv.id), historyWindow)
             if (!prep) throw new APIError('Yeniden üretilecek bir yanıt bulunamadı.', 400)
-            message = prep.userText.slice(0, MESSAGE_CHAR_CAP)
+            message = capMessage(prep.userText)
             history = prep.history
             regenAssistantId = prep.assistantMessageId
         } else {

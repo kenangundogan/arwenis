@@ -14,9 +14,10 @@ interface Props {
     welcome: string
     suggestions: string[]
     userName?: string
+    maxMessageChars?: number
 }
 
-export default function ChatView({ conversationId, welcome, suggestions, userName }: Props) {
+export default function ChatView({ conversationId, welcome, suggestions, userName, maxMessageChars }: Props) {
     const t = useTranslations()
     const [greeting, setGreeting] = useState('')
     const [today, setToday] = useState('')
@@ -152,7 +153,7 @@ export default function ChatView({ conversationId, welcome, suggestions, userNam
                         <ChevronDown className="size-5" />
                     </button>
                 )}
-                <Composer onSend={handleSend} onStop={stop} streaming={streaming} />
+                <Composer onSend={handleSend} onStop={stop} streaming={streaming} maxLength={maxMessageChars} />
             </div>
         </div>
     )
