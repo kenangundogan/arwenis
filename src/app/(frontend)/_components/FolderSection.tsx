@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import {
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarGroupAction,
-    SidebarGroupContent,
-    SidebarMenu,
+    SidebarMenuItem,
+    SidebarMenuButton,
+    SidebarMenuAction,
+    SidebarMenuSub,
+    Collapsible,
+    CollapsibleTrigger,
+    CollapsibleContent,
     AlertDialog,
     AlertDialogContent,
     AlertDialogHeader,
@@ -16,7 +18,7 @@ import {
     AlertDialogCancel,
     AlertDialogAction,
 } from 'eglador-ui-react'
-import { Trash2 } from 'lucide-react'
+import { ChevronRight, Folder, Trash2 } from 'lucide-react'
 import ConversationItem from './ConversationItem'
 import { deleteFolder, type ConversationLite, type FolderLite } from '../_lib/api'
 import { useTranslations } from 'next-intl'
@@ -39,25 +41,45 @@ export default function FolderSection({ folder, conversations, folders, activeId
         onChanged()
     }
 
+    const hasActive = conversations.some((c) => c.id === activeId)
+
     return (
-        <SidebarGroup>
-            <SidebarGroupLabel>{folder.name}</SidebarGroupLabel>
-            <SidebarGroupAction aria-label={t('chat.deleteFolder')} onClick={() => setTimeout(() => setConfirmOpen(true), 0)}>
+        <SidebarMenuItem>
+            <Collapsible className="group/collapsible" defaultOpen={hasActive}>
+                <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip={folder.name}>
+                        <ChevronRight className="size-4 shrink-0 text-zinc-400 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        <Folder className="size-4 shrink-0 text-zinc-500" />
+                        <span className="truncate">{folder.name}</span>
+                    </SidebarMenuButton>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent>
+                    <SidebarMenuSub>
+                        {conversations.length === 0 ? (
+                            <li className="px-2 py-1 text-xs text-zinc-400">{t('chat.folderEmpty')}</li>
+                        ) : (
+                            conversations.map((c) => (
+                                <ConversationItem
+                                    key={c.id}
+                                    conv={c}
+                                    active={activeId === c.id}
+                                    folders={folders}
+                                    onChanged={onChanged}
+                                />
+                            ))
+                        )}
+                    </SidebarMenuSub>
+                </CollapsibleContent>
+            </Collapsible>
+
+            <SidebarMenuAction
+                showOnHover
+                aria-label={t('chat.deleteFolder')}
+                onClick={() => setTimeout(() => setConfirmOpen(true), 0)}
+            >
                 <Trash2 className="size-3.5" />
-            </SidebarGroupAction>
-            <SidebarGroupContent>
-                <SidebarMenu>
-                    {conversations.map((c) => (
-                        <ConversationItem
-                            key={c.id}
-                            conv={c}
-                            active={activeId === c.id}
-                            folders={folders}
-                            onChanged={onChanged}
-                        />
-                    ))}
-                </SidebarMenu>
-            </SidebarGroupContent>
+            </SidebarMenuAction>
 
             <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
                 <AlertDialogContent>
@@ -73,6 +95,6 @@ export default function FolderSection({ folder, conversations, folders, activeId
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </SidebarGroup>
+        </SidebarMenuItem>
     )
 }

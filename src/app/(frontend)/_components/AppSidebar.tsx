@@ -13,7 +13,6 @@ import {
     SidebarMenu,
     SidebarMenuItem,
     SidebarMenuButton,
-    SidebarInput,
     Button,
     Input,
     Empty,
@@ -23,17 +22,16 @@ import {
     EmptyDescription,
     EmptyContent,
 } from 'eglador-ui-react'
-import { Plus, FolderPlus, Search, MessagesSquare, SearchX } from 'lucide-react'
+import { Plus, FolderPlus, Search, MessagesSquare } from 'lucide-react'
 import { createFolder, type ConversationLite, type FolderLite } from '../_lib/api'
 import ConversationItem from './ConversationItem'
 import FolderSection from './FolderSection'
 import AccountMenu from './AccountMenu'
+import SearchDialog from './SearchDialog'
 import { useTranslations } from 'next-intl'
 
 const folderIdOf = (c: ConversationLite): string | null =>
     c.folder && typeof c.folder === 'object' ? c.folder.id : ((c.folder as string | null) ?? null)
-
-const norm = (s: string) => s.toLocaleLowerCase('tr')
 
 interface Props {
     convs: ConversationLite[]
@@ -57,14 +55,12 @@ export default function AppSidebar({
     logoAlt,
 }: Props) {
     const t = useTranslations()
+    const [searchOpen, setSearchOpen] = useState(false)
     const [newFolder, setNewFolder] = useState(false)
     const [folderName, setFolderName] = useState('')
-    const [query, setQuery] = useState('')
     const router = useRouter()
     const pathname = usePathname()
     const activeId = pathname.startsWith('/chat/') ? pathname.slice('/chat/'.length) : null
-
-    const q = query.trim()
 
     const { byFolder, loose } = useMemo(() => {
         const map = new Map<string, ConversationLite[]>()
@@ -82,12 +78,6 @@ export default function AppSidebar({
         return { byFolder: map, loose: rest }
     }, [convs])
 
-    const results = useMemo(() => {
-        if (!q) return []
-        const nq = norm(q)
-        return convs.filter((c) => norm(c.title || '').includes(nq))
-    }, [q, convs])
-
     async function submitFolder() {
         const name = folderName.trim()
         setNewFolder(false)
@@ -102,146 +92,127 @@ export default function AppSidebar({
 
     return (
         <>
-            <SidebarHeader>
-                <div className="flex items-center gap-2 px-2 py-1.5">
+            <SidebarHeader className="gap-2">
+                <div className="flex h-8 items-center gap-2 px-1 group-data-[collapsible=icon]/sidebar:justify-center group-data-[collapsible=icon]/sidebar:px-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {logoUrl ? <img src={logoUrl} alt={logoAlt} className="h-6 w-auto" /> : null}
-                    <span className="truncate text-base font-semibold text-zinc-800">{brandName}</span>
+                    {logoUrl ? <img src={logoUrl} alt={logoAlt} className="h-6 w-auto shrink-0" /> : null}
+                    <span className="truncate text-base font-semibold text-zinc-800 group-data-[collapsible=icon]/sidebar:hidden">
+                        {brandName}
+                    </span>
                 </div>
-                <div className="flex items-center gap-1">
-                    <SidebarMenu className="flex-1">
-                        <SidebarMenuItem>
-                            <SidebarMenuButton asChild>
-                                <Link href="/chat">
-                                    <Plus className="size-4" />
-                                    <span>{t('chat.newChat')}</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        shape="square"
-                        aria-label={t('chat.newFolder')}
-                        onClick={() => setNewFolder((v) => !v)}
-                    >
-                        <FolderPlus className="size-4" />
-                    </Button>
-                </div>
-                <div className="relative px-1 pt-1">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
-                    <SidebarInput
-                        className="pl-8"
-                        placeholder={t('chat.search')}
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                    />
-                </div>
+
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild tooltip={t('chat.newChat')}>
+                            <Link href="/chat">
+                                <Plus className="size-4" />
+                                <span>{t('chat.newChat')}</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton tooltip={t('chat.search')} onClick={() => setSearchOpen(true)}>
+                            <Search className="size-4" />
+                            <span>{t('chat.search')}</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem className="group-data-[collapsible=icon]/sidebar:hidden">
+                        <SidebarMenuButton tooltip={t('chat.newFolder')} onClick={() => setNewFolder((v) => !v)}>
+                            <FolderPlus className="size-4" />
+                            <span>{t('chat.newFolder')}</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
             </SidebarHeader>
 
             <SidebarContent>
-                {q ? (
-                    results.length > 0 ? (
-                        <SidebarGroup>
-                            <SidebarGroupLabel>{t('chat.searchResults')}</SidebarGroupLabel>
-                            <SidebarGroupContent>
-                                <SidebarMenu>
-                                    {results.map((c) => (
-                                        <ConversationItem
-                                            key={c.id}
-                                            conv={c}
-                                            active={activeId === c.id}
-                                            folders={folders}
-                                            onChanged={onChanged}
-                                        />
-                                    ))}
-                                </SidebarMenu>
-                            </SidebarGroupContent>
-                        </SidebarGroup>
-                    ) : (
+                <div className="flex flex-col gap-1 group-data-[collapsible=icon]/sidebar:hidden">
+                    {isEmpty ? (
                         <Empty className="px-2 py-8">
                             <EmptyHeader>
                                 <EmptyMedia variant="icon">
-                                    <SearchX />
+                                    <MessagesSquare />
                                 </EmptyMedia>
-                                <EmptyTitle>{t('chat.noResults')}</EmptyTitle>
-                                <EmptyDescription>{t('chat.noResultsDesc')}</EmptyDescription>
+                                <EmptyTitle>{t('chat.noConversations')}</EmptyTitle>
+                                <EmptyDescription>{t('chat.noConversationsDesc')}</EmptyDescription>
                             </EmptyHeader>
+                            <EmptyContent>
+                                <Button size="sm" onClick={() => router.push('/chat')}>
+                                    <Plus className="size-4" />
+                                    {t('chat.newChat')}
+                                </Button>
+                            </EmptyContent>
                         </Empty>
-                    )
-                ) : isEmpty ? (
-                    <Empty className="px-2 py-8">
-                        <EmptyHeader>
-                            <EmptyMedia variant="icon">
-                                <MessagesSquare />
-                            </EmptyMedia>
-                            <EmptyTitle>{t('chat.noConversations')}</EmptyTitle>
-                            <EmptyDescription>{t('chat.noConversationsDesc')}</EmptyDescription>
-                        </EmptyHeader>
-                        <EmptyContent>
-                            <Button size="sm" onClick={() => router.push('/chat')}>
-                                <Plus className="size-4" />
-                                {t('chat.newChat')}
-                            </Button>
-                        </EmptyContent>
-                    </Empty>
-                ) : (
-                    <>
-                        {newFolder && (
-                            <div className="px-2 pb-1">
-                                <Input
-                                    size="sm"
-                                    autoFocus
-                                    placeholder={t('chat.folderNamePlaceholder')}
-                                    value={folderName}
-                                    onChange={(e) => setFolderName(e.target.value)}
-                                    onBlur={submitFolder}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') submitFolder()
-                                        if (e.key === 'Escape') {
-                                            setNewFolder(false)
-                                            setFolderName('')
-                                        }
-                                    }}
-                                />
-                            </div>
-                        )}
+                    ) : (
+                        <>
+                            {newFolder && (
+                                <div className="px-2 pb-1">
+                                    <Input
+                                        size="sm"
+                                        autoFocus
+                                        placeholder={t('chat.folderNamePlaceholder')}
+                                        value={folderName}
+                                        onChange={(e) => setFolderName(e.target.value)}
+                                        onBlur={submitFolder}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') submitFolder()
+                                            if (e.key === 'Escape') {
+                                                setNewFolder(false)
+                                                setFolderName('')
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            )}
 
-                        {folders.map((f) => (
-                            <FolderSection
-                                key={f.id}
-                                folder={f}
-                                conversations={byFolder.get(f.id) ?? []}
-                                folders={folders}
-                                activeId={activeId}
-                                onChanged={onChanged}
-                            />
-                        ))}
+                            {folders.length > 0 && (
+                                <SidebarGroup className="px-2 py-1">
+                                    <SidebarGroupLabel>{t('chat.folders')}</SidebarGroupLabel>
+                                    <SidebarGroupContent>
+                                        <SidebarMenu>
+                                            {folders.map((f) => (
+                                                <FolderSection
+                                                    key={f.id}
+                                                    folder={f}
+                                                    conversations={byFolder.get(f.id) ?? []}
+                                                    folders={folders}
+                                                    activeId={activeId}
+                                                    onChanged={onChanged}
+                                                />
+                                            ))}
+                                        </SidebarMenu>
+                                    </SidebarGroupContent>
+                                </SidebarGroup>
+                            )}
 
-                        <SidebarGroup>
-                            {folders.length > 0 && <SidebarGroupLabel>{t('chat.loose')}</SidebarGroupLabel>}
-                            <SidebarGroupContent>
-                                <SidebarMenu>
-                                    {loose.map((c) => (
-                                        <ConversationItem
-                                            key={c.id}
-                                            conv={c}
-                                            active={activeId === c.id}
-                                            folders={folders}
-                                            onChanged={onChanged}
-                                        />
-                                    ))}
-                                </SidebarMenu>
-                            </SidebarGroupContent>
-                        </SidebarGroup>
-                    </>
-                )}
+                            {loose.length > 0 && (
+                                <SidebarGroup className="px-2 py-1">
+                                    <SidebarGroupLabel>{t('chat.loose')}</SidebarGroupLabel>
+                                    <SidebarGroupContent>
+                                        <SidebarMenu>
+                                            {loose.map((c) => (
+                                                <ConversationItem
+                                                    key={c.id}
+                                                    conv={c}
+                                                    active={activeId === c.id}
+                                                    folders={folders}
+                                                    onChanged={onChanged}
+                                                />
+                                            ))}
+                                        </SidebarMenu>
+                                    </SidebarGroupContent>
+                                </SidebarGroup>
+                            )}
+                        </>
+                    )}
+                </div>
             </SidebarContent>
 
             <SidebarFooter>
                 <AccountMenu memberName={memberName} memberEmail={memberEmail} />
             </SidebarFooter>
+
+            <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} convs={convs} />
         </>
     )
 }

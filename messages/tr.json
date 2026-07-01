@@ -75,6 +75,7 @@
         "folderNamePlaceholder": "Klasör adı",
         "deleteFolder": "Klasörü sil",
         "deleteFolderDesc": "Klasör silinir; içindeki sohbetler korunur (klasörden çıkarılır).",
+        "folderEmpty": "Bu klasör boş",
         "loose": "Sohbetler",
         "search": "Sohbetlerde ara…",
         "searchResults": "Arama sonuçları",

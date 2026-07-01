@@ -43,8 +43,8 @@ export default function ChatShell({
     }, [refresh])
 
     return (
-        <SidebarProvider className="h-svh overflow-hidden">
-            <Sidebar collapsible="offcanvas">
+        <SidebarProvider defaultOpen className="h-svh overflow-hidden">
+            <Sidebar side="left" variant="sidebar" collapsible="icon">
                 <AppSidebar
                     convs={convs}
                     folders={folders}
