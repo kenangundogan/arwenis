@@ -61,7 +61,7 @@ export async function deleteAccount(): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
-    await fetch('/api/members/logout', { method: 'POST', headers: JSON_HEADERS }).catch(() => {})
+    await fetch('/api/members/logout', { method: 'POST', headers: JSON_HEADERS }).catch(() => { })
 }
 
 export async function forgotPassword(email: string, recaptchaToken?: string | null): Promise<void> {
@@ -140,7 +140,7 @@ export async function renameConversation(id: string, title: string): Promise<voi
         method: 'PATCH',
         headers: JSON_HEADERS,
         body: JSON.stringify({ title }),
-    }).catch(() => {})
+    }).catch(() => { })
 }
 
 export async function sendFeedback(messageId: string, feedback: 'up' | 'down'): Promise<void> {
@@ -148,7 +148,7 @@ export async function sendFeedback(messageId: string, feedback: 'up' | 'down'): 
         method: 'PATCH',
         headers: JSON_HEADERS,
         body: JSON.stringify({ feedback }),
-    }).catch(() => {})
+    }).catch(() => { })
 }
 
 export async function setActiveVariant(messageId: string, index: number): Promise<void> {
@@ -156,7 +156,7 @@ export async function setActiveVariant(messageId: string, index: number): Promis
         method: 'PATCH',
         headers: JSON_HEADERS,
         body: JSON.stringify({ activeVariant: index }),
-    }).catch(() => {})
+    }).catch(() => { })
 }
 
 export interface FolderLite {
@@ -177,7 +177,7 @@ export async function createFolder(name: string): Promise<void> {
 }
 
 export async function deleteFolder(id: string): Promise<void> {
-    await fetch(`/api/folders/${id}`, { method: 'DELETE' }).catch(() => {})
+    await fetch(`/api/folders/${id}`, { method: 'DELETE' }).catch(() => { })
 }
 
 export async function clearFolders(): Promise<void> {
@@ -190,7 +190,7 @@ export async function moveConversation(id: string, folder: string | null): Promi
         method: 'PATCH',
         headers: JSON_HEADERS,
         body: JSON.stringify({ folder }),
-    }).catch(() => {})
+    }).catch(() => { })
 }
 
 export async function getMe(): Promise<Member | null> {
@@ -230,7 +230,7 @@ export async function listMemory(): Promise<MemoryLite[]> {
 }
 
 export async function deleteMemory(id: string): Promise<void> {
-    await fetch(`/api/memory/${id}`, { method: 'DELETE' }).catch(() => {})
+    await fetch(`/api/memory/${id}`, { method: 'DELETE' }).catch(() => { })
 }
 
 export async function clearMemory(): Promise<void> {
@@ -256,11 +256,10 @@ export async function listSessions(): Promise<SessionLite[]> {
 }
 
 export async function deleteSession(id: string): Promise<void> {
-    await fetch(`/api/member-login-sessions/${id}`, { method: 'DELETE' }).catch(() => {})
+    await fetch(`/api/member-login-sessions/${id}`, { method: 'DELETE' }).catch(() => { })
 }
 
 export async function clearSessions(): Promise<void> {
-    // limit=0 → Payload returns all matching docs (not capped at the listSessions limit).
     const res = await fetch('/api/member-login-sessions?limit=0&depth=0')
     if (!res.ok) return
     const body = await res.json()
@@ -280,4 +279,79 @@ export async function listAccounts(): Promise<AccountLite[]> {
     if (!res.ok) return []
     const body = await res.json()
     return (body?.docs ?? []) as AccountLite[]
+}
+
+export interface UsageDaily {
+    day: string
+    messages: number
+    tokens: number
+}
+
+export interface UsageStats {
+    totalMessages: number
+    userMessages: number
+    assistantMessages: number
+    tokensIn: number
+    tokensOut: number
+    totalTokens: number
+    conversations: number
+    daily: UsageDaily[]
+}
+
+interface UsageMessageRow {
+    role?: 'user' | 'assistant' | null
+    tokensIn?: number | null
+    tokensOut?: number | null
+    createdAt?: string | null
+}
+
+export async function getUsageStats(days = 30): Promise<UsageStats> {
+    const [msgRes, convRes] = await Promise.all([
+        fetch(
+            '/api/messages?limit=0&depth=0&sort=createdAt' +
+            '&select[role]=true&select[tokensIn]=true&select[tokensOut]=true&select[createdAt]=true',
+        ),
+        fetch('/api/conversations?limit=1&depth=0'),
+    ])
+    const msgBody = msgRes.ok ? await msgRes.json() : { docs: [] }
+    const convBody = convRes.ok ? await convRes.json() : { totalDocs: 0 }
+    const rows = (msgBody?.docs ?? []) as UsageMessageRow[]
+
+    const dayMs = 86_400_000
+    const todayUTC = new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00.000Z').getTime()
+    const startUTC = todayUTC - (days - 1) * dayMs
+    const buckets = new Map<string, UsageDaily>()
+    for (let i = 0; i < days; i++) {
+        const key = new Date(startUTC + i * dayMs).toISOString().slice(0, 10)
+        buckets.set(key, { day: key, messages: 0, tokens: 0 })
+    }
+
+    let userMessages = 0
+    let assistantMessages = 0
+    let tokensIn = 0
+    let tokensOut = 0
+    for (const r of rows) {
+        if (r.role === 'user') userMessages++
+        else if (r.role === 'assistant') assistantMessages++
+        const ti = r.tokensIn ?? 0
+        const to = r.tokensOut ?? 0
+        tokensIn += ti
+        tokensOut += to
+        const bucket = r.createdAt ? buckets.get(r.createdAt.slice(0, 10)) : undefined
+        if (bucket) {
+            bucket.messages++
+            bucket.tokens += ti + to
+        }
+    }
+
+    return {
+        totalMessages: rows.length,
+        userMessages,
+        assistantMessages,
+        tokensIn,
+        tokensOut,
+        totalTokens: tokensIn + tokensOut,
+        conversations: (convBody?.totalDocs as number) ?? 0,
+        daily: Array.from(buckets.values()),
+    }
 }

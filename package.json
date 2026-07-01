@@ -33,6 +33,7 @@
     "dompurify": "^3.4.10",
     "dotenv": "16.4.7",
     "eglador-ui-react": "1.0.0-alpha.19",
+    "eglador-ui-react-chart": "1.0.0-alpha.6",
     "eglador-ui-react-text-reveal": "1.0.0-alpha.2",
     "eglador-ui-react-toast": "1.0.0-alpha.2",
     "eglador-ui-react-typewriter": "1.0.0-alpha.2",
