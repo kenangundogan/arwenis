@@ -22,8 +22,11 @@ import {
     AlertDialogCancel,
     AlertDialogAction,
     Input,
+    Tooltip,
+    TooltipTrigger,
+    TooltipContent,
 } from 'eglador-ui-react'
-import { MoreHorizontal, MessageSquare, Pencil, Trash2, FolderInput, FolderMinus } from 'lucide-react'
+import { MoreHorizontal, MessageCircle, Pencil, Trash2, FolderInput, FolderMinus } from 'lucide-react'
 import {
     renameConversation,
     deleteConversation,
@@ -50,6 +53,8 @@ export default function ConversationItem({ conv, active, folders, onChanged }: P
 
     const currentFolderId =
         conv.folder && typeof conv.folder === 'object' ? conv.folder.id : ((conv.folder as string | null) ?? null)
+
+    const label = conv.title || t('chat.newChat')
 
     async function commitRename() {
         setEditing(false)
@@ -104,12 +109,17 @@ export default function ConversationItem({ conv, active, folders, onChanged }: P
 
     return (
         <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={active} tooltip={conv.title || t('chat.newChat')}>
-                <Link href={`/chat/${conv.id}`}>
-                    <MessageSquare className="size-4" />
-                    <span className="truncate">{conv.title || t('chat.newChat')}</span>
-                </Link>
-            </SidebarMenuButton>
+            <Tooltip side="right" align="center" sideOffset={8}>
+                <TooltipTrigger asChild>
+                    <SidebarMenuButton asChild isActive={active}>
+                        <Link href={`/chat/${conv.id}`}>
+                            <MessageCircle className="size-4" />
+                            <span className="truncate">{label}</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </TooltipTrigger>
+                <TooltipContent>{label}</TooltipContent>
+            </Tooltip>
 
             <Dropdown align="end">
                 <DropdownTrigger asChild>

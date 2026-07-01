@@ -10,7 +10,7 @@ import {
     EmptyTitle,
     EmptyDescription,
 } from 'eglador-ui-react'
-import { BarChart3, MessageSquare, Coins, MessagesSquare, ArrowUp, ArrowDown } from 'lucide-react'
+import { BarChart3, MessageCircle, Coins, MessagesSquare, ArrowUp, ArrowDown } from 'lucide-react'
 import { BarChart } from 'eglador-ui-react-chart'
 import { getUsageStats, type UsageStats } from '../../_lib/api'
 
@@ -118,7 +118,7 @@ export default function UsageSection() {
                         <div className="space-y-3">
                             <div className="grid grid-cols-2 gap-3">
                                 <StatCard
-                                    icon={<MessageSquare className="size-4" />}
+                                    icon={<MessageCircle className="size-4" />}
                                     label={tu('messages')}
                                     value={fmt(stats.totalMessages)}
                                     up={{ value: fmt(stats.userMessages), label: tu('sent') }}
