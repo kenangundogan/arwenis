@@ -32,12 +32,12 @@ export default function AccountMenu({ memberName, memberEmail }: { memberName: s
         <>
             <Dropdown align="start">
                 <DropdownTrigger asChild>
-                    <button className="flex w-full items-center gap-2 rounded-lg p-2 text-left transition hover:bg-zinc-100">
+                    <button className="flex w-full items-center gap-2 rounded-lg p-2 text-left transition hover:bg-zinc-100 group-data-[collapsible=icon]/sidebar:justify-center group-data-[collapsible=icon]/sidebar:p-1.5">
                         <span className="grid size-7 shrink-0 place-items-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-600">
                             {initials}
                         </span>
-                        <span className="min-w-0 flex-1 truncate text-sm text-zinc-700">{label}</span>
-                        <ChevronsUpDown className="size-4 shrink-0 text-zinc-400" />
+                        <span className="min-w-0 flex-1 truncate text-sm text-zinc-700 group-data-[collapsible=icon]/sidebar:hidden">{label}</span>
+                        <ChevronsUpDown className="size-4 shrink-0 text-zinc-400 group-data-[collapsible=icon]/sidebar:hidden" />
                     </button>
                 </DropdownTrigger>
                 <DropdownContent>

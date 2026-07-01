@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import {
     Dialog,
     DialogContent,
@@ -25,8 +26,23 @@ interface Props {
     memberEmail: string
 }
 
+// Masaüstü ≥640px: dikey yan sekmeler. Mobil: yatay, kaydırılabilir sekmeler (iç içe girmeyi önler).
+function useIsDesktop(): boolean {
+    const [desktop, setDesktop] = useState(true)
+    useEffect(() => {
+        const mq = window.matchMedia('(min-width: 640px)')
+        const update = () => setDesktop(mq.matches)
+        update()
+        mq.addEventListener('change', update)
+        return () => mq.removeEventListener('change', update)
+    }, [])
+    return desktop
+}
+
 export default function SettingsDialog({ open, onOpenChange, memberEmail }: Props) {
     const t = useTranslations()
+    const desktop = useIsDesktop()
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange} size="xl">
             <DialogContent>
@@ -35,32 +51,36 @@ export default function SettingsDialog({ open, onOpenChange, memberEmail }: Prop
                 </DialogHeader>
                 <Tabs
                     defaultValue="profile"
-                    orientation="vertical"
+                    orientation={desktop ? 'vertical' : 'horizontal'}
                     variant="pills"
-                    className="mt-2 flex h-150 max-h-[80vh] overflow-hidden rounded-xl border border-zinc-200"
+                    className="mt-2 h-150 max-h-[calc(100dvh-8rem)] overflow-hidden rounded-xl border border-zinc-200"
                 >
-                    <TabsList className="w-44 shrink-0 gap-1 border-r border-zinc-200 bg-zinc-50 p-2">
-                        <TabsTrigger value="general" icon={<Settings2 className="size-4" />}>
+                    <TabsList
+                        scrollable
+                        style={{ height: 'auto' }}
+                        className="shrink-0 gap-1 border-b border-zinc-200 bg-zinc-50 p-2 sm:w-44 sm:border-b-0 sm:border-r"
+                    >
+                        <TabsTrigger value="general" icon={<Settings2 className="size-4" />} className="whitespace-nowrap">
                             {t('settings.general')}
                         </TabsTrigger>
-                        <TabsTrigger value="profile" icon={<User className="size-4" />}>
+                        <TabsTrigger value="profile" icon={<User className="size-4" />} className="whitespace-nowrap">
                             {t('settings.profile')}
                         </TabsTrigger>
-                        <TabsTrigger value="memory" icon={<Brain className="size-4" />}>
+                        <TabsTrigger value="memory" icon={<Brain className="size-4" />} className="whitespace-nowrap">
                             {t('settings.memory')}
                         </TabsTrigger>
-                        <TabsTrigger value="usage" icon={<BarChart3 className="size-4" />}>
+                        <TabsTrigger value="usage" icon={<BarChart3 className="size-4" />} className="whitespace-nowrap">
                             {t('settings.usage')}
                         </TabsTrigger>
-                        <TabsTrigger value="account" icon={<ShieldCheck className="size-4" />}>
+                        <TabsTrigger value="account" icon={<ShieldCheck className="size-4" />} className="whitespace-nowrap">
                             {t('settings.account')}
                         </TabsTrigger>
-                        <TabsTrigger value="data" icon={<Database className="size-4" />}>
+                        <TabsTrigger value="data" icon={<Database className="size-4" />} className="whitespace-nowrap">
                             {t('data.title')}
                         </TabsTrigger>
                     </TabsList>
 
-                    <div className="min-w-0 flex-1">
+                    <div className="min-h-0 min-w-0 flex-1">
                         <TabsContent value="general" className="h-full">
                             <GeneralSection />
                         </TabsContent>
