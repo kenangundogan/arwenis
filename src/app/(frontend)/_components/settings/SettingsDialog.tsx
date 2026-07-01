@@ -17,7 +17,7 @@ import GeneralSection from './GeneralSection'
 import MemorySection from './MemorySection'
 import AccountSection from './AccountSection'
 import DataSection from './DataSection'
-import SoonSection from './SoonSection'
+import UsageSection from './UsageSection'
 
 interface Props {
     open: boolean
@@ -37,7 +37,7 @@ export default function SettingsDialog({ open, onOpenChange, memberEmail }: Prop
                     defaultValue="profile"
                     orientation="vertical"
                     variant="pills"
-                    className="mt-2 flex h-[600px] max-h-[80vh] overflow-hidden rounded-xl border border-zinc-200"
+                    className="mt-2 flex h-150 max-h-[80vh] overflow-hidden rounded-xl border border-zinc-200"
                 >
                     <TabsList className="w-44 shrink-0 gap-1 border-r border-zinc-200 bg-zinc-50 p-2">
                         <TabsTrigger value="general" icon={<Settings2 className="size-4" />}>
@@ -71,7 +71,7 @@ export default function SettingsDialog({ open, onOpenChange, memberEmail }: Prop
                             <MemorySection />
                         </TabsContent>
                         <TabsContent value="usage" className="h-full">
-                            <SoonSection title={t('settings.usage')} icon={<BarChart3 />} />
+                            <UsageSection />
                         </TabsContent>
                         <TabsContent value="account" className="h-full">
                             <AccountSection email={memberEmail} />

@@ -162,6 +162,19 @@
         "bot": "Bot",
         "unknown": "Bilinmiyor"
     },
+    "usage": {
+        "subtitle": "Asistanla etkileşimine dair özet.",
+        "messages": "Mesaj",
+        "sent": "gönderilen",
+        "replies": "yanıt",
+        "tokens": "Token",
+        "tokensIn": "girdi",
+        "tokensOut": "çıktı",
+        "conversations": "Sohbet",
+        "last30Days": "Son 30 gün",
+        "empty": "Henüz kullanım yok",
+        "emptyDesc": "Asistanla sohbet ettikçe istatistiklerin burada görünecek."
+    },
     "profile": {
         "title": "Profil",
         "subtitle": "Kişisel bilgilerini düzenle. E-posta değiştirilemez.",
