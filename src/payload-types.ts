@@ -2198,6 +2198,10 @@ export interface Limit {
    */
   maxConversationsPerUser?: number | null;
   /**
+   * Kullanıcının tek mesajda gönderebileceği maksimum karakter. Hem giriş kutusunda (maxLength + sayaç) hem sunucuda uygulanır. Örn. 4000. 0 = sınırsız. Değişikliğin son kullanıcıya yansıması için yayınlayın.
+   */
+  maxMessageChars?: number | null;
+  /**
    * Bu içeriği oluşturan kullanıcı
    */
   createdBy?: (string | null) | User;
@@ -2424,6 +2428,7 @@ export interface LimitsSelect<T extends boolean = true> {
   perIpRateLimit?: T;
   maxConversationMessages?: T;
   maxConversationsPerUser?: T;
+  maxMessageChars?: T;
   createdBy?: T;
   updatedBy?: T;
   _status?: T;

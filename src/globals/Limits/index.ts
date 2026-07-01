@@ -45,6 +45,17 @@ export const Limits: GlobalConfig = {
             min: 0,
             admin: { description: 'Bir kullanıcının açabileceği maksimum konuşma. Örn. 50. 0 = sınırsız.' },
         },
+        {
+            name: 'maxMessageChars',
+            label: 'Mesaj Karakter Sınırı',
+            type: 'number',
+            defaultValue: 4000,
+            min: 0,
+            admin: {
+                description:
+                    'Kullanıcının tek mesajda gönderebileceği maksimum karakter. Hem giriş kutusunda (maxLength + sayaç) hem sunucuda uygulanır. Örn. 4000. 0 = sınırsız. Değişikliğin son kullanıcıya yansıması için yayınlayın.',
+            },
+        },
         ...auditFields,
     ],
     versions: { drafts: { schedulePublish: true } },

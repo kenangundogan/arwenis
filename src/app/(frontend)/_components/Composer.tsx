@@ -9,13 +9,17 @@ interface Props {
     onSend: (text: string) => void
     onStop: () => void
     streaming: boolean
+    maxLength?: number
 }
 
-export default function Composer({ onSend, onStop, streaming }: Props) {
+export default function Composer({ onSend, onStop, streaming, maxLength }: Props) {
     const t = useTranslations()
     const [text, setText] = useState('')
     const [multiline, setMultiline] = useState(false)
     const ref = useRef<HTMLTextAreaElement>(null)
+
+    const charLimit = maxLength && maxLength > 0 ? maxLength : 0
+    const showCounter = charLimit > 0 && text.length >= charLimit * 0.8
 
     const resize = () => {
         const el = ref.current
@@ -44,24 +48,23 @@ export default function Composer({ onSend, onStop, streaming }: Props) {
     return (
         <div className="bg-white px-4 pb-3 pt-1">
             <div
-                className={`mx-auto max-w-3xl border border-zinc-200 bg-white px-3 py-2.5 shadow-sm focus-within:border-zinc-300 ${
-                    multiline ? 'rounded-3xl' : 'rounded-full'
-                }`}
+                className={`mx-auto max-w-3xl border border-zinc-200 bg-white px-3 py-2.5 shadow-sm focus-within:border-zinc-300 ${multiline ? 'rounded-3xl' : 'rounded-full'
+                    }`}
             >
                 <div className={`flex gap-2 ${multiline ? 'flex-col' : 'items-center'}`}>
                     <textarea
                         ref={ref}
                         rows={1}
                         value={text}
+                        maxLength={charLimit || undefined}
                         placeholder={t('chat.placeholder')}
                         onChange={(e) => {
                             setText(e.target.value)
                             resize()
                         }}
                         onKeyDown={onKeyDown}
-                        className={`max-h-[200px] resize-none bg-transparent px-1 text-sm leading-6 text-zinc-900 outline-none placeholder:text-zinc-400 ${
-                            multiline ? 'w-full' : 'min-w-0 flex-1'
-                        }`}
+                        className={`max-h-[200px] resize-none bg-transparent px-1 text-sm leading-6 text-zinc-900 outline-none placeholder:text-zinc-400 ${multiline ? 'w-full' : 'min-w-0 flex-1'
+                            }`}
                     />
                     <div className={multiline ? 'flex justify-end' : ''}>
                         {streaming ? (
@@ -89,6 +92,15 @@ export default function Composer({ onSend, onStop, streaming }: Props) {
                     </div>
                 </div>
             </div>
+            {showCounter ? (
+                <div
+                    aria-live="polite"
+                    className="mx-auto mt-1 max-w-3xl px-3 text-right text-xs tabular-nums text-zinc-400"
+                >
+                    <span className={text.length >= charLimit ? 'font-medium text-rose-500' : ''}>{text.length}</span>
+                    {` / ${charLimit}`}
+                </div>
+            ) : null}
             <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-zinc-400">{t('chat.disclaimer')}</p>
         </div>
     )

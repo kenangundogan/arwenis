@@ -13,3 +13,14 @@ export async function getWelcome(): Promise<{ welcome: string; suggestions: stri
         return { welcome: t('chat.emptyTitle'), suggestions: [] }
     }
 }
+
+export const DEFAULT_MAX_MESSAGE_CHARS = 4000
+export async function getMaxMessageChars(): Promise<number> {
+    try {
+        const limits = await getCachedGlobal('limits', 0)()
+        const v = limits?.maxMessageChars
+        return typeof v === 'number' ? v : DEFAULT_MAX_MESSAGE_CHARS
+    } catch {
+        return DEFAULT_MAX_MESSAGE_CHARS
+    }
+}
