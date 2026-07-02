@@ -98,11 +98,11 @@ export async function listConversations(): Promise<ConversationLite[]> {
 }
 
 export async function getMessages(conversationId: string): Promise<MessageLite[]> {
-    const url = `/api/messages?where[conversation][equals]=${encodeURIComponent(conversationId)}&sort=createdAt&limit=500&depth=0`
+    const url = `/api/messages?where[conversation][equals]=${encodeURIComponent(conversationId)}&sort=-createdAt&limit=500&depth=0`
     const res = await fetch(url)
     if (!res.ok) return []
     const body = await res.json()
-    return (body?.docs ?? []) as MessageLite[]
+    return ((body?.docs ?? []) as MessageLite[]).reverse()
 }
 
 export async function deleteConversation(id: string): Promise<void> {
@@ -114,9 +114,16 @@ export async function deleteConversation(id: string): Promise<void> {
     if (!res.ok) throw await parseError(res)
 }
 
+async function allDocIds(collectionPath: string): Promise<string[]> {
+    const res = await fetch(`${collectionPath}?limit=0&depth=0`)
+    if (!res.ok) return []
+    const body = await res.json()
+    return ((body?.docs ?? []) as { id: string }[]).map((d) => d.id)
+}
+
 export async function clearConversations(): Promise<void> {
-    const items = await listConversations()
-    await Promise.all(items.map((c) => deleteConversation(c.id)))
+    const ids = await allDocIds('/api/conversations')
+    await Promise.all(ids.map((id) => deleteConversation(id)))
 }
 
 export async function exportData(): Promise<void> {
@@ -181,8 +188,8 @@ export async function deleteFolder(id: string): Promise<void> {
 }
 
 export async function clearFolders(): Promise<void> {
-    const items = await listFolders()
-    await Promise.all(items.map((f) => deleteFolder(f.id)))
+    const ids = await allDocIds('/api/folders')
+    await Promise.all(ids.map((id) => deleteFolder(id)))
 }
 
 export async function moveConversation(id: string, folder: string | null): Promise<void> {
@@ -234,8 +241,8 @@ export async function deleteMemory(id: string): Promise<void> {
 }
 
 export async function clearMemory(): Promise<void> {
-    const items = await listMemory()
-    await Promise.all(items.map((m) => deleteMemory(m.id)))
+    const ids = await allDocIds('/api/memory')
+    await Promise.all(ids.map((id) => deleteMemory(id)))
 }
 
 export interface SessionLite {
@@ -260,10 +267,7 @@ export async function deleteSession(id: string): Promise<void> {
 }
 
 export async function clearSessions(): Promise<void> {
-    const res = await fetch('/api/member-login-sessions?limit=0&depth=0')
-    if (!res.ok) return
-    const body = await res.json()
-    const ids = ((body?.docs ?? []) as SessionLite[]).map((s) => s.id)
+    const ids = await allDocIds('/api/member-login-sessions')
     await Promise.all(ids.map((id) => deleteSession(id)))
 }
 

@@ -39,7 +39,7 @@ export default function ChatView({ conversationId, welcome, suggestions, userNam
         window.history.replaceState(null, '', `/chat/${id}`)
         window.dispatchEvent(new CustomEvent('arwenis:conversations-changed'))
     }, [])
-    const { messages, streaming, send, stop, regenerate, switchVariant, setHistory } = useChatStream({
+    const { messages, streaming, send, stop, regenerate, switchVariant, setHistory, messagesRef, streamingRef } = useChatStream({
         initialConversationId: conversationId,
         onConversationCreated,
     })
@@ -49,6 +49,7 @@ export default function ChatView({ conversationId, welcome, suggestions, userNam
         let active = true
         getMessages(conversationId).then((docs) => {
             if (!active) return
+            if (streamingRef.current || messagesRef.current.length > 0) return
             setHistory(
                 docs.map((d) => {
                     const variants =
@@ -71,7 +72,7 @@ export default function ChatView({ conversationId, welcome, suggestions, userNam
         return () => {
             active = false
         }
-    }, [conversationId, setHistory])
+    }, [conversationId, setHistory, messagesRef, streamingRef])
 
     const scrollRef = useRef<HTMLDivElement>(null)
     const stick = useRef(true)
