@@ -1,36 +1,35 @@
-/**
- * RAG retrieval test harness.
- *   pnpm payload run scripts/test-retrieval.ts            (varsayılan sorular)
- *   pnpm payload run scripts/test-retrieval.ts "soru 1" "soru 2"
- *
- * Uygulamanın kendi config + planQuery + retrieve zincirini gerçek vektör DB'ye
- * karşı çalıştırır; her soru için planı (filtre/recency) ve dönen pasajları yazar.
- */
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { loadAssistantConfig } from '@/lib/assistant/loadConfig'
+import { resolveRetrieval } from '@/lib/assistant/config'
 import { planQuery, retrieve } from '@/lib/assistant/retrieve'
 
 const payload = await getPayload({ config })
 const settings = await loadAssistantConfig(payload)
 
-const r = settings.retrieval
-console.log('================ RETRIEVAL CONFIG ================')
-console.log('provider :', r?.provider, '| index:', r?.index, '| url:', r?.url)
-console.log('textKey  :', r?.textKey, '| recencyKey:', r?.recencyKey)
-console.log('minScore :', r?.minScore, '| topK:', r?.topK)
-console.log('facets   :', JSON.stringify((r?.facets ?? []).filter(Boolean).map((f: any) => ({ key: f.key, type: f.type, values: (f.values ?? []).length }))))
+console.log('================ RETRIEVAL CONFIG (resolved) ================')
+try {
+    const r = resolveRetrieval(settings)
+    console.log('provider :', r.providerId, '| index:', r.index, '| url:', r.url)
+    console.log('textKey  :', r.textKey, '| recencyKey:', r.recencyKey ?? '-')
+    console.log('minScore :', r.minScore, '| topK:', r.topK)
+    console.log('citation :', JSON.stringify({ title: r.citation.titleKey, url: r.citation.urlKey, image: r.citation.imageKey, desc: r.citation.descriptionKey, date: r.citation.publishedAtKey }))
+    console.log('fetch    :', r.citation.fetchFields.join(', '))
+    console.log('facets   :', JSON.stringify(r.facets.map((f) => ({ key: f.key, type: f.type, values: f.values.length }))))
+} catch (e) {
+    console.log('  CONFIG HATASI:', (e as Error).message)
+}
 
 const cli = process.argv.slice(2).filter((a) => !a.startsWith('-'))
 const questions = cli.length
     ? cli
     : [
-          'son ekonomi haberleri neler?',
-          'en güncel teknoloji haberleri',
-          'lezzetli yemek tarifleri',
-          'bu hafta vizyona giren filmler',
-          'günlük burç yorumları',
-      ]
+        'son ekonomi haberleri neler?',
+        'en güncel teknoloji haberleri',
+        'lezzetli yemek tarifleri',
+        'bu hafta vizyona giren filmler',
+        'günlük burç yorumları',
+    ]
 
 for (const q of questions) {
     console.log('\n\n========== SORU:', q)

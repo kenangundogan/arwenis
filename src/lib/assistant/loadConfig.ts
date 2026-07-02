@@ -24,14 +24,13 @@ export type AssistantConfig = {
         namespace?: string | null
         topK?: number | null
         minScore?: number | null
-        textKey?: string | null
-        recencyKey?: string | null
-        facets?:
+        payloadFields?:
             | ({
-                  key?: string | null
-                  type?: string | null
+                  field?: string | null
+                  roles?: (string | null)[] | null
                   label?: string | null
-                  values?: ({ value?: string | null } | string)[] | null
+                  filterType?: string | null
+                  allowedValues?: ({ value?: string | null } | string)[] | null
               } | null)[]
             | null
     } | null

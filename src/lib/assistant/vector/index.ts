@@ -66,7 +66,6 @@ const queryQdrant = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Cita
         'Content-Type': 'application/json',
         ...(cfg.apiKey ? { 'api-key': cfg.apiKey } : {}),
     }
-    const citeOpts = { textKey: cfg.textKey, facetKeys: cfg.facets.map((f) => f.key), recencyKey: cfg.recencyKey }
 
     if (q.latest) {
         const res = await fetch(`${cfg.url}/collections/${encodeURIComponent(cfg.index)}/points/scroll`, {
@@ -84,7 +83,7 @@ const queryQdrant = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Cita
         const json: any = await res.json()
         const points: any[] = json.result?.points ?? []
         return points
-            .map((p) => toCitation(p.payload, { id: String(p.id), score: 1, ...citeOpts }))
+            .map((p) => toCitation(p.payload, cfg, { id: String(p.id), score: 1 }))
             .filter((c): c is Citation => c !== null)
     }
 
@@ -103,7 +102,7 @@ const queryQdrant = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Cita
     const json: any = await res.json()
     const results: any[] = json.result ?? []
     return results
-        .map((r) => toCitation(r.payload, { id: String(r.id), score: r.score, ...citeOpts }))
+        .map((r) => toCitation(r.payload, cfg, { id: String(r.id), score: r.score }))
         .filter((c): c is Citation => c !== null)
 }
 
@@ -129,23 +128,56 @@ const queryPinecone = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Ci
     const json: any = await res.json()
     const matches: any[] = json.matches ?? []
     return matches
-        .map((m) => toCitation(m.metadata, { id: String(m.id), score: m.score, textKey: cfg.textKey, facetKeys: cfg.facets.map((f) => f.key), recencyKey: cfg.recencyKey }))
+        .map((m) => toCitation(m.metadata, cfg, { id: String(m.id), score: m.score }))
         .filter((c): c is Citation => c !== null)
 }
 
-const queryWeaviate = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Citation[]> => {
-    const near = q.vector
-        ? `nearVector: { vector: ${JSON.stringify(q.vector)} }`
-        : q.text
-            ? `nearText: { concepts: ${JSON.stringify([q.text])} }`
-            : null
-    if (!near) throw new VectorError('Weaviate için vektör veya metin sorgusu gerekli.')
+const weaviateEqual = (key: string, value: string): string =>
+    `{ path: ["${key}"], operator: Equal, valueText: ${JSON.stringify(value)} }`
 
-    if (!GQL_IDENTIFIER.test(cfg.index) || !GQL_IDENTIFIER.test(cfg.textKey)) {
-        throw new VectorError('Geçersiz Weaviate index/textKey adı.')
+const buildWeaviateWhere = (q: VectorQuery): string | null => {
+    const filters = activeFilters(q)
+    if (filters.length === 0) return null
+    const perFacet = filters.map((f) =>
+        f.values.length === 1
+            ? weaviateEqual(f.key, f.values[0])
+            : `{ operator: Or, operands: [${f.values.map((v) => weaviateEqual(f.key, v)).join(', ')}] }`,
+    )
+    return perFacet.length === 1 ? perFacet[0] : `{ operator: And, operands: [${perFacet.join(', ')}] }`
+}
+
+const queryWeaviate = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Citation[]> => {
+    const facetKeys = cfg.facets.map((f) => f.key)
+    const cf = cfg.citation
+    const props = Array.from(
+        new Set(
+            [cfg.textKey, cfg.recencyKey, ...facetKeys, ...cf.fetchFields].filter(
+                (name): name is string => typeof name === 'string' && name.length > 0,
+            ),
+        ),
+    )
+    for (const name of [cfg.index, ...props, ...activeFilters(q).map((f) => f.key)]) {
+        if (!GQL_IDENTIFIER.test(name)) throw new VectorError(`Geçersiz Weaviate alan adı: ${name}`)
     }
 
-    const gql = `{ Get { ${cfg.index}( ${near} limit: ${cfg.topK} ) { ${cfg.textKey} _additional { id certainty distance } } } }`
+    const where = buildWeaviateWhere(q)
+    const whereArg = where ? ` where: ${where}` : ''
+
+    let args: string
+    if (q.latest) {
+        const sort = cfg.recencyKey ? ` sort: [{ path: ["${cfg.recencyKey}"], order: desc }]` : ''
+        args = `${whereArg}${sort} limit: ${cfg.topK}`.trim()
+    } else {
+        const near = q.vector
+            ? `nearVector: { vector: ${JSON.stringify(q.vector)} }`
+            : q.text
+                ? `nearText: { concepts: ${JSON.stringify([q.text])} }`
+                : null
+        if (!near) throw new VectorError('Weaviate için vektör veya metin sorgusu gerekli.')
+        args = `${near}${whereArg} limit: ${cfg.topK}`
+    }
+
+    const gql = `{ Get { ${cfg.index}( ${args} ) { ${props.join(' ')} _additional { id certainty distance } } } }`
 
     const res = await fetch(`${cfg.url}/v1/graphql`, {
         method: 'POST',
@@ -163,8 +195,21 @@ const queryWeaviate = async (cfg: ResolvedRetrieval, q: VectorQuery): Promise<Ci
     return items
         .map((it) => {
             const add = it._additional ?? {}
-            const score = typeof add.certainty === 'number' ? add.certainty : 1 - (add.distance ?? 1)
-            return toCitation({ [cfg.textKey]: it[cfg.textKey] }, { id: add.id, score, textKey: cfg.textKey })
+            const score = q.latest
+                ? 1
+                : typeof add.certainty === 'number'
+                    ? add.certainty
+                    : 1 - (add.distance ?? 1)
+            const data: Record<string, any> = { ...it }
+            delete data._additional
+            if (cf.imageKey && typeof data[cf.imageKey] === 'string') {
+                try {
+                    data[cf.imageKey] = JSON.parse(data[cf.imageKey])
+                } catch {
+                    data[cf.imageKey] = null
+                }
+            }
+            return toCitation(data, cfg, { id: add.id, score })
         })
         .filter((c): c is Citation => c !== null)
 }

@@ -1,25 +1,9 @@
 import type { AssistantConfig } from './loadConfig'
 import type { ChatMessage, Citation, QueryPlan, Facet, FacetFilter } from './types'
-import { resolveLLM, resolveRetrieval, resolveEmbedding } from './config'
+import { resolveLLM, resolveRetrieval, resolveEmbedding, facetsFromSettings } from './config'
 import { getLLMAdapter, collectText } from './llm'
 import { buildEmbedFn } from './embedding'
 import { queryVector } from './vector'
-
-const configuredFacets = (settings: AssistantConfig): Facet[] =>
-    Array.isArray(settings.retrieval?.facets)
-        ? settings
-              .retrieval!.facets!.map((f) => ({
-                  key: typeof f?.key === 'string' ? f.key.trim() : '',
-                  type: (f?.type === 'integer' || f?.type === 'datetime' ? f.type : 'keyword') as Facet['type'],
-                  label: typeof f?.label === 'string' && f.label ? f.label : (f?.key ?? ''),
-                  values: Array.isArray(f?.values)
-                      ? f.values
-                            .map((v) => (typeof v === 'string' ? v : v?.value))
-                            .filter((v): v is string => typeof v === 'string' && v.length > 0)
-                      : [],
-              }))
-              .filter((f) => f.key.length > 0)
-        : []
 
 const parseJsonObject = (text: string): any => {
     const cleaned = text.replace(/```json\s*|```/gi, '')
@@ -37,9 +21,14 @@ const describeFacets = (facets: Facet[]): string => {
     const keyword = facets.filter((f) => f.type === 'keyword')
     if (keyword.length === 0) return '(tanımlı faset yok)'
     return keyword
-        .map((f) => `${f.key} (${f.label}): ${f.values.length ? f.values.join(', ') : 'serbest değer'}`)
+        .map((f) => {
+            const vals = f.values.map((v) => (v.label && v.label !== v.value ? `${v.value} (${v.label})` : v.value))
+            return `${f.key} (${f.label}): ${vals.length ? vals.join(', ') : 'serbest değer'}`
+        })
         .join(' | ')
 }
+
+const normValue = (s: string): string => s.trim().toLocaleLowerCase('tr')
 
 const validateFilters = (raw: unknown, facets: Facet[]): FacetFilter[] => {
     if (!Array.isArray(raw)) return []
@@ -49,12 +38,21 @@ const validateFilters = (raw: unknown, facets: Facet[]): FacetFilter[] => {
         const key = typeof item?.key === 'string' ? item.key : ''
         const facet = byKey.get(key)
         if (!facet) continue
-        const values = Array.isArray(item?.values)
-            ? item.values
-                  .filter((v: unknown): v is string => typeof v === 'string' && v.length > 0)
-                  .filter((v: string) => facet.values.length === 0 || facet.values.includes(v))
+        const rawValues: string[] = Array.isArray(item?.values)
+            ? item.values.filter((v: unknown): v is string => typeof v === 'string' && v.length > 0)
             : []
-        if (values.length > 0) out.push({ key, values })
+        const values = rawValues
+            .map((v) => {
+                if (facet.values.length === 0) return v
+                const hit =
+                    facet.values.find((av) => av.value === v) ??
+                    facet.values.find(
+                        (av) => normValue(av.value) === normValue(v) || (av.label ? normValue(av.label) === normValue(v) : false),
+                    )
+                return hit ? hit.value : null
+            })
+            .filter((v): v is string => typeof v === 'string' && v.length > 0)
+        if (values.length > 0) out.push({ key, values: Array.from(new Set(values)) })
     }
     return out
 }
@@ -105,7 +103,7 @@ export const planQuery = async (
     const template = settings.prompts?.queryPlanPrompt
     if (!template) return fallback
 
-    const facets = configuredFacets(settings)
+    const facets = facetsFromSettings(settings)
     const system = template.replace('{{facets}}', describeFacets(facets))
     const convo = history.map((m) => `${m.role}: ${m.content}`).join('\n')
     const ctx = userContext && hasPersonalReference(message) ? `${userContext}\n\n` : ''
