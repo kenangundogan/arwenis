@@ -25,6 +25,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
     const [{ welcome, suggestions }, maxMessageChars] = await Promise.all([getWelcome(), getMaxMessageChars()])
     return (
         <ChatView
+            key={id}
             conversationId={id}
             welcome={welcome}
             suggestions={suggestions}

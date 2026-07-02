@@ -44,10 +44,15 @@ export function useChatStream({ initialConversationId, onConversationCreated }: 
     const abortRef = useRef<AbortController | null>(null)
     const localIdRef = useRef(0)
     const messagesRef = useRef<ChatMessage[]>([])
+    const streamingRef = useRef(false)
 
     useEffect(() => {
         messagesRef.current = messages
     }, [messages])
+
+    useEffect(() => {
+        streamingRef.current = streaming
+    }, [streaming])
 
     const setHistory = useCallback((msgs: ChatMessage[]) => {
         setMessages(msgs.map((m) => ({ ...m, localId: m.localId ?? m.id ?? `m${++localIdRef.current}` })))
@@ -192,5 +197,5 @@ export function useChatStream({ initialConversationId, onConversationCreated }: 
         [streaming],
     )
 
-    return { messages, streaming, send, stop, regenerate, switchVariant, setHistory, conversationIdRef }
+    return { messages, streaming, send, stop, regenerate, switchVariant, setHistory, conversationIdRef, messagesRef, streamingRef }
 }
