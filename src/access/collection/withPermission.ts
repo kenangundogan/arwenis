@@ -7,6 +7,9 @@ export const canCreate = (resource: string): Access => {
     }
 }
 
+const ownScopeWhere = (resource: string, userId: string | number): Where =>
+    resource === 'users' ? { id: { equals: userId } } : { createdBy: { equals: userId } }
+
 export const canRead = (resource: string): Access => {
     return async ({ req }) => {
         if (req.user && isAdmin(req.user)) return true
@@ -22,42 +25,34 @@ export const canRead = (resource: string): Access => {
         if (!hasReadPermission) return false
 
         const scope = await getPermissionScope(req, req.user, resource)
-
         if (scope === 'all') return true
-
-        if (scope === 'own') {
-            if (resource === 'users') {
-                return {
-                    id: {
-                        equals: req.user.id,
-                    },
-                } as Where
-            }
-
-            return {
-                createdBy: {
-                    equals: req.user.id,
-                },
-            } as Where
-        }
-
+        if (scope === 'own') return ownScopeWhere(resource, req.user.id)
         return false
     }
 }
 
 export const canUpdate = (resource: string): Access => {
     return async ({ req, data }) => {
-        if (data && data._status === 'published') {
-            return await hasPermission(req, req.user, resource, 'publish')
-        }
+        const action = data && data._status === 'published' ? 'publish' : 'update'
+        if (!(await hasPermission(req, req.user, resource, action))) return false
+        if (isAdmin(req.user)) return true
 
-        return await hasPermission(req, req.user, resource, 'update')
+        const scope = await getPermissionScope(req, req.user, resource)
+        if (scope === 'all') return true
+        if (scope === 'own' && req.user) return ownScopeWhere(resource, req.user.id)
+        return false
     }
 }
 
 export const canDelete = (resource: string): Access => {
     return async ({ req }) => {
-        return await hasPermission(req, req.user, resource, 'delete')
+        if (!(await hasPermission(req, req.user, resource, 'delete'))) return false
+        if (isAdmin(req.user)) return true
+
+        const scope = await getPermissionScope(req, req.user, resource)
+        if (scope === 'all') return true
+        if (scope === 'own' && req.user) return ownScopeWhere(resource, req.user.id)
+        return false
     }
 }
 

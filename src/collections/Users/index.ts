@@ -10,6 +10,7 @@ import {
     canDelete,
     checkRole,
     selfOrAdminField,
+    adminOnlyField,
     canReadSecure,
 } from '@/access'
 
@@ -97,6 +98,8 @@ export const Users: CollectionConfig = {
             },
             access: {
                 read: selfOrAdminField,
+                update: adminOnlyField,
+                create: adminOnlyField,
             },
         },
         {
