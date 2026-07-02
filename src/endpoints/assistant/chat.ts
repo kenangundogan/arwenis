@@ -17,7 +17,6 @@ import {
     prepareRegenerate,
     appendAssistantVariant,
     persistRegeneratedAssistant,
-    generateTitle,
     loadMemories,
     buildUserContext,
     countConversations,
@@ -107,7 +106,6 @@ export const chatEndpoint: Endpoint = {
             }
         }
 
-        const isFirstTurn = !isRegenerate && !!conv && (conv.messageCount ?? 0) === 0
         let regenAssistantId: string | null = null
         let history: ChatMessage[]
         if (isRegenerate && conv) {
@@ -171,7 +169,6 @@ export const chatEndpoint: Endpoint = {
                             tokensIn: usage?.inputTokens,
                             tokensOut: usage?.outputTokens,
                         })
-                        if (isFirstTurn) await generateTitle(req.payload, settings, conv, message)
                     }
                 }
             } catch (err) {

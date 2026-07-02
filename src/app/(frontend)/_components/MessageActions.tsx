@@ -7,6 +7,7 @@ import { sendFeedback } from '../_lib/api'
 export default function MessageActions({
     messageId,
     content,
+    initialFeedback = null,
     onRegenerate,
     variantIndex,
     variantTotal,
@@ -15,6 +16,7 @@ export default function MessageActions({
 }: {
     messageId?: string
     content: string
+    initialFeedback?: 'up' | 'down' | null
     onRegenerate?: () => void
     variantIndex?: number
     variantTotal?: number
@@ -22,7 +24,7 @@ export default function MessageActions({
     onNext?: () => void
 }) {
     const [copied, setCopied] = useState(false)
-    const [fb, setFb] = useState<'up' | 'down' | null>(null)
+    const [fb, setFb] = useState<'up' | 'down' | null>(initialFeedback)
 
     async function copy() {
         try {
@@ -37,8 +39,13 @@ export default function MessageActions({
     async function feedback(v: 'up' | 'down') {
         if (!messageId) return
         const next = fb === v ? null : v
+        const prev = fb
         setFb(next)
-        if (next) await sendFeedback(messageId, next)
+        try {
+            await sendFeedback(messageId, next)
+        } catch {
+            setFb(prev)
+        }
     }
 
     const btn = 'rounded p-1.5 transition hover:bg-zinc-100'

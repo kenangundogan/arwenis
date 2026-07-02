@@ -2,7 +2,7 @@ import type { TaskConfig } from 'payload'
 
 import { loadAssistantConfig } from '@/lib/assistant/loadConfig'
 import { summarizeAndExtract } from '@/lib/assistant/summarize'
-import { loadHistory, loadMemories, saveMemories } from '@/lib/assistant/store'
+import { loadHistory, loadMemories, saveMemories, generateTitle } from '@/lib/assistant/store'
 
 export const summarizeTurnTask: TaskConfig<'summarizeTurn'> = {
     slug: 'summarizeTurn',
@@ -19,7 +19,7 @@ export const summarizeTurnTask: TaskConfig<'summarizeTurn'> = {
                 id: input.conversationId,
                 depth: 0,
                 overrideAccess: true,
-            })) as { summary?: string | null; member?: string | { id: string } } | null
+            })) as { id: string | number; title?: string | null; summary?: string | null; member?: string | { id: string } } | null
             if (!conv) return { output: {} }
 
             const memberId = conv.member && typeof conv.member === 'object' ? conv.member.id : conv.member
@@ -27,6 +27,11 @@ export const summarizeTurnTask: TaskConfig<'summarizeTurn'> = {
             const windowSize = settings.memory?.historyWindow ?? 10
             const turns = await loadHistory(payload, String(input.conversationId), windowSize)
             if (turns.length === 0) return { output: {} }
+
+            if (!conv.title) {
+                const firstUser = turns.find((t) => t.role === 'user')?.content
+                if (firstUser) await generateTitle(payload, settings, conv, firstUser)
+            }
 
             const existingFacts = crossConv && memberId ? (await loadMemories(payload, String(memberId))).map((m) => m.text) : []
 

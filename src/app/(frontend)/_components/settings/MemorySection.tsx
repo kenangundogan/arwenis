@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, ScrollArea } from 'eglador-ui-react'
 import { Brain, Trash2 } from 'lucide-react'
+import { toast } from 'eglador-ui-react-toast'
 import { listMemory, deleteMemory, type MemoryLite } from '../../_lib/api'
 import { useTranslations } from 'next-intl'
 
@@ -25,8 +26,14 @@ export default function MemorySection() {
     }, [])
 
     async function removeOne(id: string) {
+        const prev = items
         setItems((x) => x.filter((m) => m.id !== id))
-        await deleteMemory(id)
+        try {
+            await deleteMemory(id)
+        } catch (err) {
+            setItems(prev)
+            toast.error((err as Error).message || t('common.somethingWentWrong'))
+        }
     }
 
     return (

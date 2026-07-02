@@ -20,6 +20,7 @@ export interface MessageLite {
     citations?: Citation[] | null
     variants?: { content: string; citations?: Citation[] | null }[] | null
     activeVariant?: number | null
+    feedback?: 'up' | 'down' | null
 }
 
 const parseError = async (res: Response): Promise<Error> => {
@@ -143,19 +144,21 @@ export async function exportData(): Promise<void> {
 }
 
 export async function renameConversation(id: string, title: string): Promise<void> {
-    await fetch(`/api/conversations/${id}`, {
+    const res = await fetch(`/api/conversations/${id}`, {
         method: 'PATCH',
         headers: JSON_HEADERS,
         body: JSON.stringify({ title }),
-    }).catch(() => { })
+    })
+    if (!res.ok) throw await parseError(res)
 }
 
-export async function sendFeedback(messageId: string, feedback: 'up' | 'down'): Promise<void> {
-    await fetch(`/api/messages/${messageId}`, {
+export async function sendFeedback(messageId: string, feedback: 'up' | 'down' | null): Promise<void> {
+    const res = await fetch(`/api/messages/${messageId}`, {
         method: 'PATCH',
         headers: JSON_HEADERS,
         body: JSON.stringify({ feedback }),
-    }).catch(() => { })
+    })
+    if (!res.ok) throw await parseError(res)
 }
 
 export async function setActiveVariant(messageId: string, index: number): Promise<void> {
@@ -184,7 +187,8 @@ export async function createFolder(name: string): Promise<void> {
 }
 
 export async function deleteFolder(id: string): Promise<void> {
-    await fetch(`/api/folders/${id}`, { method: 'DELETE' }).catch(() => { })
+    const res = await fetch(`/api/folders/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw await parseError(res)
 }
 
 export async function clearFolders(): Promise<void> {
@@ -193,11 +197,12 @@ export async function clearFolders(): Promise<void> {
 }
 
 export async function moveConversation(id: string, folder: string | null): Promise<void> {
-    await fetch(`/api/conversations/${id}`, {
+    const res = await fetch(`/api/conversations/${id}`, {
         method: 'PATCH',
         headers: JSON_HEADERS,
         body: JSON.stringify({ folder }),
-    }).catch(() => { })
+    })
+    if (!res.ok) throw await parseError(res)
 }
 
 export async function getMe(): Promise<Member | null> {
@@ -237,7 +242,8 @@ export async function listMemory(): Promise<MemoryLite[]> {
 }
 
 export async function deleteMemory(id: string): Promise<void> {
-    await fetch(`/api/memory/${id}`, { method: 'DELETE' }).catch(() => { })
+    const res = await fetch(`/api/memory/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw await parseError(res)
 }
 
 export async function clearMemory(): Promise<void> {
@@ -263,7 +269,8 @@ export async function listSessions(): Promise<SessionLite[]> {
 }
 
 export async function deleteSession(id: string): Promise<void> {
-    await fetch(`/api/member-login-sessions/${id}`, { method: 'DELETE' }).catch(() => { })
+    const res = await fetch(`/api/member-login-sessions/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw await parseError(res)
 }
 
 export async function clearSessions(): Promise<void> {
