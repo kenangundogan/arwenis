@@ -3,8 +3,6 @@ import { hasPermission } from '../utils'
 
 export const canReadGlobal = (globalSlug: string): Access => {
     return async ({ req }) => {
-        if (!req.user) return true
-
         return await hasPermission(req, req.user, globalSlug, 'read')
     }
 }

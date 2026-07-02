@@ -1,4 +1,4 @@
-import type { Citation } from '../types'
+import type { Citation, ResolvedRetrieval } from '../types'
 
 export const safeHttpUrl = (value: unknown): string | undefined => {
     if (typeof value !== 'string') return undefined
@@ -20,32 +20,35 @@ const pickImageUrl = (images: unknown): string | undefined => {
 
 export const toCitation = (
     payload: Record<string, any> | undefined | null,
-    opts: { id?: string; score: number; textKey: string; facetKeys?: string[]; recencyKey?: string },
+    cfg: ResolvedRetrieval,
+    opts: { id?: string; score: number },
 ): Citation | null => {
     const data = payload ?? {}
-    const text = typeof data[opts.textKey] === 'string' ? data[opts.textKey] : ''
+    const text = typeof data[cfg.textKey] === 'string' ? data[cfg.textKey] : ''
     if (!text) return null
 
-    const url = safeHttpUrl(data.url ?? data.source ?? data.link ?? data.href)
-    const image = pickImageUrl(data.images)
-    const description =
-        typeof data.description === 'string' && data.description.trim() ? data.description : undefined
-    const titleRaw = data.title ?? data.name ?? data.heading
+    const c = cfg.citation
+    const url = c.urlKey ? safeHttpUrl(data[c.urlKey]) : undefined
+    const image = c.imageKey ? pickImageUrl(data[c.imageKey]) : undefined
+    const descRaw = c.descriptionKey ? data[c.descriptionKey] : undefined
+    const description = typeof descRaw === 'string' && descRaw.trim() ? descRaw : undefined
+    const titleRaw = c.titleKey ? data[c.titleKey] : undefined
     const title = typeof titleRaw === 'string' ? titleRaw : undefined
 
     let publishedAt: string | undefined
-    if (typeof data.publishedAt === 'string' && data.publishedAt.length > 0) {
-        publishedAt = data.publishedAt
-    } else if (opts.recencyKey && typeof data[opts.recencyKey] === 'number') {
-        const d = new Date(data[opts.recencyKey])
+    const pubRaw = c.publishedAtKey ? data[c.publishedAtKey] : undefined
+    if (typeof pubRaw === 'string' && pubRaw.length > 0) {
+        publishedAt = pubRaw
+    } else if (cfg.recencyKey && typeof data[cfg.recencyKey] === 'number') {
+        const d = new Date(data[cfg.recencyKey])
         if (!Number.isNaN(d.getTime())) publishedAt = d.toISOString()
     }
 
     const facets: Record<string, string> = {}
-    for (const k of opts.facetKeys ?? []) {
-        const v = data[k]
-        if (typeof v === 'string' && v.length > 0) facets[k] = v
-        else if (typeof v === 'number') facets[k] = String(v)
+    for (const f of cfg.facets) {
+        const v = data[f.key]
+        if (typeof v === 'string' && v.length > 0) facets[f.key] = v
+        else if (typeof v === 'number') facets[f.key] = String(v)
     }
 
     return {

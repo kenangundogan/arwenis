@@ -2095,31 +2095,30 @@ export interface Retrieval {
    */
   minScore?: number | null;
   /**
-   * Pasaj METNİNİN saklandığı alan adı. Örn. text / content / chunk.
+   * Her satır payload'daki BİR alanı tanımlar. Roller: Pasaj metni (RAG içeriği — tam 1 satırda olmalı, fazlaysa ilki kullanılır) · kart slotları (Başlık/Link/Görsel/Açıklama/Tarih) · Sıralama ("en güncel" için, epoch/integer; Qdrant'ta integer index gerekir) · Filtre (sorgu planlayıcı yalnız bu alanlara filtre uygular). Rolsüz satır yalnızca çekilir. Weaviate'te SADECE bu tablodaki alanlar sorgulanır. Yeni alan gerektiğinde satır ekleyin — kod değişmez.
    */
-  textKey?: string | null;
-  /**
-   * "En güncel / en son" sıralaması için kullanılacak payload alanı (epoch ms / integer). Örn. publishedAtTs. Boşsa recency sıralaması devre dışı. (Qdrant'ta bu alanın integer index'i olmalı.)
-   */
-  recencyKey?: string | null;
-  /**
-   * Bilgi tabanının filtrelenebilir metadata alanları (domain-agnostik). Sorgu planlayıcı kullanıcı niyetini YALNIZCA buradaki fasetlere eşler. Örn. haber için key=category; e-ticaret için key=brand. Domain default'u YOKTUR; her kuruluma göre tanımlanır.
-   */
-  facets?:
+  payloadFields?:
     | {
         /**
-         * Vektör payload'ındaki alan adı. Örn. category.
+         * Vektör payload'ındaki alan adı. Örn. text, title, url, images, category, publishedAtTs.
          */
-        key: string;
+        field: string;
+        /**
+         * Bir alan birden çok rol alabilir (ör. Tarih + Sıralama). Boş = yalnızca çekilir. "Filtre" seçilince filtre ayarları aşağıda belirir.
+         */
+        roles?: ('text' | 'title' | 'url' | 'image' | 'description' | 'date' | 'sort' | 'filter')[] | null;
+        /**
+         * Planlayıcıya/tanılamaya gösterilen ad. Boşsa alan adı kullanılır.
+         */
+        label?: string | null;
         /**
          * keyword: değere göre filtre (ör. category=spor). Şu an planlayıcı keyword fasetlerini filtreler.
          */
-        type: 'keyword' | 'integer' | 'datetime';
-        label?: string | null;
+        filterType?: ('keyword' | 'integer' | 'datetime') | null;
         /**
-         * Bu fasetin alabileceği değerler (kapalı küme). Boşsa planlayıcı serbest değer üretebilir. Örn. spor, magazin, ekonomi.
+         * Bu filtrenin alabileceği değerler (kapalı küme). Değer = payload'daki ham değer; Görünen Ad planlayıcıya değerle birlikte verilir (ör. "kultur-sanat (Kültür-Sanat)") ve eşleme isabetini artırır. Liste doluyken dışındaki değerler elenir; boşsa planlayıcı serbest değer üretebilir.
          */
-        values?:
+        allowedValues?:
           | {
               value: string;
               label?: string | null;
@@ -2379,15 +2378,14 @@ export interface RetrievalSelect<T extends boolean = true> {
   namespace?: T;
   topK?: T;
   minScore?: T;
-  textKey?: T;
-  recencyKey?: T;
-  facets?:
+  payloadFields?:
     | T
     | {
-        key?: T;
-        type?: T;
+        field?: T;
+        roles?: T;
         label?: T;
-        values?:
+        filterType?: T;
+        allowedValues?:
           | T
           | {
               value?: T;

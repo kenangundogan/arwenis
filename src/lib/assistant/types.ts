@@ -37,16 +37,30 @@ export type ResolvedLLM = {
 
 export type FacetType = 'keyword' | 'integer' | 'datetime'
 
+export type FacetValue = {
+    value: string
+    label?: string
+}
+
 export type Facet = {
     key: string
     type: FacetType
     label: string
-    values: string[]
+    values: FacetValue[]
 }
 
 export type FacetFilter = {
     key: string
     values: string[]
+}
+
+export type CitationFields = {
+    titleKey?: string
+    urlKey?: string
+    imageKey?: string
+    descriptionKey?: string
+    publishedAtKey?: string
+    fetchFields: string[]
 }
 
 export type ResolvedRetrieval = {
@@ -60,6 +74,7 @@ export type ResolvedRetrieval = {
     textKey: string
     facets: Facet[]
     recencyKey?: string
+    citation: CitationFields
     supportsTextQuery: boolean
 }
 

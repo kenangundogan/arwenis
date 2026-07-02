@@ -1,5 +1,5 @@
 import type { AssistantConfig } from './loadConfig'
-import type { ResolvedLLM, ResolvedRetrieval, ResolvedEmbedding } from './types'
+import type { ResolvedLLM, ResolvedRetrieval, ResolvedEmbedding, Facet, FacetValue } from './types'
 import { getLLMProvider, getVectorProvider } from './providers'
 
 export class ConfigError extends Error {
@@ -59,12 +59,72 @@ export const resolveLLM = (settings: AssistantConfig): ResolvedLLM => {
     }
 }
 
+type PayloadFieldRow = {
+    field: string
+    roles: string[]
+    label?: string
+    filterType?: string
+    values: FacetValue[]
+}
+
+const DEFAULT_PAYLOAD_FIELDS: PayloadFieldRow[] = [
+    { field: 'text', roles: ['text'], values: [] },
+    { field: 'title', roles: ['title'], values: [] },
+    { field: 'url', roles: ['url'], values: [] },
+    { field: 'images', roles: ['image'], values: [] },
+    { field: 'description', roles: ['description'], values: [] },
+]
+
+export const parsePayloadFields = (raw: unknown): PayloadFieldRow[] => {
+    const rows = (Array.isArray(raw) ? raw : [])
+        .map(
+            (m: any): PayloadFieldRow => ({
+                field: typeof m?.field === 'string' ? m.field.trim() : '',
+                roles: Array.isArray(m?.roles)
+                    ? m.roles.filter((v: unknown): v is string => typeof v === 'string')
+                    : [],
+                label: typeof m?.label === 'string' && m.label ? m.label : undefined,
+                filterType: typeof m?.filterType === 'string' ? m.filterType : undefined,
+                values: Array.isArray(m?.allowedValues)
+                    ? m.allowedValues
+                          .map(
+                              (v: any): FacetValue => ({
+                                  value: typeof v === 'string' ? v : typeof v?.value === 'string' ? v.value : '',
+                                  label: typeof v?.label === 'string' && v.label ? v.label : undefined,
+                              }),
+                          )
+                          .filter((v: FacetValue) => v.value.length > 0)
+                    : [],
+            }),
+        )
+        .filter((m) => m.field.length > 0)
+    return rows.length > 0 ? rows : DEFAULT_PAYLOAD_FIELDS
+}
+
+const facetsFromRows = (rows: PayloadFieldRow[]): Facet[] =>
+    rows
+        .filter((m) => m.roles.includes('filter'))
+        .map((m) => ({
+            key: m.field,
+            type: (m.filterType === 'integer' || m.filterType === 'datetime'
+                ? m.filterType
+                : 'keyword') as Facet['type'],
+            label: m.label || m.field,
+            values: m.values,
+        }))
+
+export const facetsFromSettings = (settings: AssistantConfig): Facet[] =>
+    facetsFromRows(parsePayloadFields(settings.retrieval?.payloadFields))
+
 export const resolveRetrieval = (settings: AssistantConfig): ResolvedRetrieval => {
     const r = settings.retrieval
     const provider = getVectorProvider(r?.provider)
     if (!provider) throw new ConfigError('Vektör DB sağlayıcısı tanımlı/geçerli değil.')
     if (!r?.url) throw new ConfigError('Vektör DB URL\'i tanımlı değil.')
     if (!r?.index) throw new ConfigError('Vektör DB index/collection adı tanımlı değil.')
+
+    const rows = parsePayloadFields(r.payloadFields)
+    const byRole = (role: string): string | undefined => rows.find((m) => m.roles.includes(role))?.field
 
     return {
         providerId: provider.id,
@@ -74,25 +134,17 @@ export const resolveRetrieval = (settings: AssistantConfig): ResolvedRetrieval =
         namespace: r.namespace ?? undefined,
         topK: r.topK ?? 5,
         minScore: r.minScore ?? 0.5,
-        textKey: r.textKey || 'text',
-        recencyKey: r.recencyKey || undefined,
-        facets: Array.isArray(r.facets)
-            ? r.facets
-                  .map((f) => ({
-                      key: typeof f?.key === 'string' ? f.key.trim() : '',
-                      type: (f?.type === 'integer' || f?.type === 'datetime' ? f.type : 'keyword') as
-                          | 'keyword'
-                          | 'integer'
-                          | 'datetime',
-                      label: typeof f?.label === 'string' && f.label ? f.label : (f?.key ?? ''),
-                      values: Array.isArray(f?.values)
-                          ? f.values
-                                .map((v) => (typeof v === 'string' ? v : v?.value))
-                                .filter((v): v is string => typeof v === 'string' && v.length > 0)
-                          : [],
-                  }))
-                  .filter((f) => f.key.length > 0)
-            : [],
+        textKey: byRole('text') || 'text',
+        recencyKey: byRole('sort'),
+        citation: {
+            titleKey: byRole('title'),
+            urlKey: byRole('url'),
+            imageKey: byRole('image'),
+            descriptionKey: byRole('description'),
+            publishedAtKey: byRole('date'),
+            fetchFields: Array.from(new Set(rows.map((m) => m.field))),
+        },
+        facets: facetsFromRows(rows),
         supportsTextQuery: provider.supportsTextQuery,
     }
 }
