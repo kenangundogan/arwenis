@@ -19,6 +19,7 @@ import {
     AlertDialogAction,
 } from 'eglador-ui-react'
 import { ChevronRight, Folder, Trash2 } from 'lucide-react'
+import { toast } from 'eglador-ui-react-toast'
 import ConversationItem from './ConversationItem'
 import { deleteFolder, type ConversationLite, type FolderLite } from '../_lib/api'
 import { useTranslations } from 'next-intl'
@@ -36,7 +37,12 @@ export default function FolderSection({ folder, conversations, folders, activeId
     const [confirmOpen, setConfirmOpen] = useState(false)
 
     async function doDelete() {
-        await deleteFolder(folder.id)
+        try {
+            await deleteFolder(folder.id)
+        } catch (err) {
+            toast.error((err as Error).message || t('common.somethingWentWrong'))
+            return
+        }
         setConfirmOpen(false)
         onChanged()
     }

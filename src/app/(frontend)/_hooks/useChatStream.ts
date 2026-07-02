@@ -19,6 +19,7 @@ export interface ChatMessage {
     variants?: MessageVariant[]
     activeVariant?: number
     pending?: boolean
+    feedback?: 'up' | 'down' | null
 }
 
 interface Options {

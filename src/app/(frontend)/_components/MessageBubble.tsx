@@ -52,6 +52,7 @@ function MessageBubble({
                     <MessageActions
                         messageId={message.id}
                         content={message.content}
+                        initialFeedback={message.feedback ?? null}
                         onRegenerate={onRegenerate}
                         variantIndex={message.variants && message.variants.length > 1 ? (message.activeVariant ?? message.variants.length - 1) : undefined}
                         variantTotal={message.variants && message.variants.length > 1 ? message.variants.length : undefined}

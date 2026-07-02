@@ -58,18 +58,27 @@ export default function ConversationItem({ conv, active, folders, onChanged }: P
 
     async function commitRename() {
         setEditing(false)
-        const t = title.trim()
-        if (t && t !== conv.title) {
-            await renameConversation(conv.id, t)
-            onChanged()
+        const trimmed = title.trim()
+        if (trimmed && trimmed !== conv.title) {
+            try {
+                await renameConversation(conv.id, trimmed)
+                onChanged()
+            } catch (err) {
+                setTitle(conv.title || '')
+                toast.error((err as Error).message || t('common.somethingWentWrong'))
+            }
         } else {
             setTitle(conv.title || '')
         }
     }
 
     async function move(folderId: string | null) {
-        await moveConversation(conv.id, folderId)
-        onChanged()
+        try {
+            await moveConversation(conv.id, folderId)
+            onChanged()
+        } catch (err) {
+            toast.error((err as Error).message || t('common.somethingWentWrong'))
+        }
     }
 
     async function doDelete() {

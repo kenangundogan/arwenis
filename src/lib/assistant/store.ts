@@ -282,7 +282,7 @@ export const buildUserContext = (args: {
 export const generateTitle = async (
     payload: Payload,
     settings: AssistantConfig,
-    conv: Conversation,
+    conv: { id: string | number },
     firstUserText: string,
 ): Promise<void> => {
     const template = settings.prompts?.titlePrompt

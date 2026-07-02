@@ -65,6 +65,7 @@ export default function ChatView({ conversationId, welcome, suggestions, userNam
                         citations: active ? active.citations : (d.citations ?? undefined),
                         variants,
                         activeVariant: variants ? idx : undefined,
+                        feedback: d.feedback ?? undefined,
                     }
                 }),
             )
